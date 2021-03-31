@@ -1,6 +1,7 @@
 import nengo
 import numpy as np
-# import scipy.io
+from nengo.dists import Uniform, Choice, Exponential
+from nengo.processes import Piecewise
 
 #u_hat = [1.4148, 0.0003, 1.1477, 0.5842, -0.0114, 0.0777, -0.0953, -0.1080, 0.1455]
 u_hat = [ 2.7136, 0.0000, 1.1668, 1.6596, -0.0090, 0.0921, -0.0636, -0.0934, 0.1246]
@@ -27,7 +28,7 @@ Gxic[bZero==1] = 0
 Gx[bZero==0]   = 0;
 U = np.array([1,1,1,1])
 
-tau = 0.05
+
 
 X_init = np.array([0, .01, .5, 0])
 def start_f(t):
@@ -51,51 +52,106 @@ np.testing.assert_almost_equal(odeCPG([0, 0, 0, 0]),
                              np.array([3.8804, 1.6596, 3.8804, 1.6596]), decimal=4)
 
 
-def rk4(x, t_step=0.001):
-    x = np.array(x)
 
-    k1 = odeCPG(x)
-    k2 = odeCPG(x+t_step*k1/2)
-    k3 = odeCPG(x+t_step*k2/2)
-    k4 = odeCPG(x+t_step*k3)
-
-    return t_step*(k1+2*k2+2*k3+k4)/6;
-
-
-np.testing.assert_almost_equal(rk4([0, 0, 0, 0]), 
-                             np.array([0.0039, 0.0017, 0.0039, 0.0017]), decimal=4)
-
-
-def feedback(x):
-    # print("input ", x)
-    x = np.array(x)
+def feedback1(x):
+    dX = odeCPG([x, 0, 0, 0])
+    return dX[0]*tau + x
     
-    # s1_old = x[0]>=x[1]
-    # s2_old = x[2]>=x[3]
+def feedback2(x):
+    dX = odeCPG([0, x, 0, 0])
+    return dX[1]*tau + x
     
-    dX = odeCPG(x)
-    x = dX*tau + x
-
-    # x = x + rk4(x)
-    # print(rk4(x))
+def feedback3(x):
+    dX = odeCPG([0, 0, x, 0])
+    return dX[2]*tau + x
     
-    s1_new = (x[0]<=1 and x[0]>x[1]) or x[1]>1
-    s2_new = (x[2]<=1 and x[2]>x[3]) or x[3]>1
-    
-    return x
+def feedback4(x):
+    dX = odeCPG([0, 0, 0, x])
+    return dX[3]*tau + x
 
 
-radius = np.sqrt(2)+0.1
 
+def make_thresh_ens_net(threshold=0.5, thresh_func=lambda x: 1,
+                        exp_scale=None, num_ens=1, net=None, **args):
+    if net is None:
+        label_str = args.get('label', 'Threshold_Ens_Net')
+        net = nengo.Network(label=label_str)
+    if exp_scale is None:
+        exp_scale = (1 - threshold) / 10.0
+
+    with net:
+        ens_args = dict(args)
+        ens_args['n_neurons'] = 5
+        ens_args['dimensions'] = 1
+        ens_args['intercepts'] = \
+            Exponential(scale=exp_scale, shift=threshold,
+                        high=1)
+        ens_args['encoders'] = Choice([[1]])
+        ens_args['eval_points'] = Uniform(min(threshold + 0.1, 1.0), 1.1)
+        ens_args['n_eval_points'] = 5000
+
+        net.input = nengo.Node(size_in=num_ens)
+        net.output = nengo.Node(size_in=num_ens)
+
+        for i in range(num_ens):
+            thresh_ens = nengo.Ensemble(**ens_args)
+            nengo.Connection(net.input[i], thresh_ens, synapse=None)
+            nengo.Connection(thresh_ens, net.output[i],
+                             function=thresh_func, synapse=None)
+    return net
+
+radius = 1.02
+state_neurons = 1000
+tau = 0.01
 
 model = nengo.Network(seed=40)
 with model:
-    state = nengo.Ensemble(1000, 4, radius=radius)
-    nengo.Connection(state, state, function=feedback, synapse=tau,)
-    start = nengo.Node(start_f)
-    nengo.Connection(start, state)
+    x1 = nengo.Ensemble(state_neurons, 1, radius=radius)
     
-    state_probe = nengo.Probe(state, synapse=tau)
-
-
-
+    x2 = nengo.Ensemble(state_neurons, 1, radius=radius)
+    
+    x3 = nengo.Ensemble(state_neurons, 1, radius=radius)
+    
+    x4 = nengo.Ensemble(state_neurons, 1, radius=radius)
+    
+    nengo.Connection(x1, x1, function=feedback1, synapse=tau)
+    nengo.Connection(x2, x2, function=feedback2, synapse=tau)
+    nengo.Connection(x3, x3, function=feedback3, synapse=tau)
+    nengo.Connection(x4, x4, function=feedback4, synapse=tau)
+    
+    s1 = nengo.Ensemble(2, 1, radius=radius, intercepts=[0,0], encoders=[[-1],[1]])
+    nengo.Connection(s1, s1, synapse=tau)
+    
+    
+    start_s1 = nengo.Node(
+        Piecewise({
+            0: 1,
+            0.01: 0,
+        }))
+     
+    nengo.Connection(start_s1, s1, synapse=tau)
+    
+    def f1(x):
+        if x > 0:
+            return [-100]*1000
+        else:
+            return [0]*1000
+    
+    def f2(x): 
+        if x < 0:
+            return [-100]*1000
+        else:
+            return [0]*1000
+          
+    nengo.Connection(s1, x1.neurons, function=f1, synapse=tau)
+    nengo.Connection(s1, x2.neurons, function=f2, synapse=tau)
+    
+    thresh1 = make_thresh_ens_net(0.47, radius=1)
+    nengo.Connection(x1, thresh1.input, function= lambda x: x-0.5, synapse=tau)
+    nengo.Connection(thresh1.output, s1,         
+                    transform=[100], synapse=tau)
+                    
+    thresh2 = make_thresh_ens_net(0.47, radius=1)  
+    nengo.Connection(x2, thresh2.input, function= lambda x: x-0.5, synapse=tau)
+    nengo.Connection(thresh2.output, s1,         
+                    transform=[-100], synapse=tau)
