@@ -52,7 +52,6 @@ np.testing.assert_almost_equal(odeCPG([0, 0, 0, 0]),
                              np.array([3.8804, 1.6596, 3.8804, 1.6596]), decimal=4)
 
 
-
 def feedback1(x):
     dX = odeCPG([x, 0, 0, 0])
     return dX[0]*tau + x
@@ -100,11 +99,24 @@ def make_thresh_ens_net(threshold=0.5, thresh_func=lambda x: 1,
                              function=thresh_func, synapse=None)
     return net
 
-radius = 1.02
-state_neurons = 1000
-tau = 0.01
 
-model = nengo.Network(seed=40)
+def positive_signal(x):
+    if x > 0:
+        return [-100]*1000
+    else:
+        return [0]*1000
+
+def negative_signal(x): 
+    if x < 0:
+        return [-100]*1000
+    else:
+        return [0]*1000
+
+radius = 1.02 
+state_neurons = 1000
+tau = 0.005
+
+model = nengo.Network(seed=41)
 with model:
     x1 = nengo.Ensemble(state_neurons, 1, radius=radius)
     
@@ -119,32 +131,20 @@ with model:
     nengo.Connection(x3, x3, function=feedback3, synapse=tau)
     nengo.Connection(x4, x4, function=feedback4, synapse=tau)
     
-    s1 = nengo.Ensemble(2, 1, radius=radius, intercepts=[0,0], encoders=[[-1],[1]])
-    nengo.Connection(s1, s1, synapse=tau)
     
-    
-    start_s1 = nengo.Node(
+    start_signal = nengo.Node(
         Piecewise({
             0: 1,
             0.01: 0,
         }))
-     
-    nengo.Connection(start_s1, s1, synapse=tau)
+        
+    s1 = nengo.Ensemble(2, 1, radius=radius, intercepts=[0,0], encoders=[[-1],[1]])
+    nengo.Connection(s1, s1, synapse=tau)
     
-    def f1(x):
-        if x > 0:
-            return [-100]*1000
-        else:
-            return [0]*1000
+    nengo.Connection(start_signal, s1, synapse=tau)
     
-    def f2(x): 
-        if x < 0:
-            return [-100]*1000
-        else:
-            return [0]*1000
-          
-    nengo.Connection(s1, x1.neurons, function=f1, synapse=tau)
-    nengo.Connection(s1, x2.neurons, function=f2, synapse=tau)
+    nengo.Connection(s1, x1.neurons, function=positive_signal, synapse=tau)
+    nengo.Connection(s1, x2.neurons, function=negative_signal, synapse=tau)
     
     thresh1 = make_thresh_ens_net(0.47, radius=1)
     nengo.Connection(x1, thresh1.input, function= lambda x: x-0.5, synapse=tau)
@@ -154,4 +154,23 @@ with model:
     thresh2 = make_thresh_ens_net(0.47, radius=1)  
     nengo.Connection(x2, thresh2.input, function= lambda x: x-0.5, synapse=tau)
     nengo.Connection(thresh2.output, s1,         
+                    transform=[-100], synapse=tau)
+                    
+    
+    s2 = nengo.Ensemble(2, 1, radius=radius, intercepts=[0,0], encoders=[[-1],[1]])
+    nengo.Connection(s2, s2, synapse=tau)
+    
+    nengo.Connection(start_signal, s2, synapse=tau)
+    
+    nengo.Connection(s2, x3.neurons, function=positive_signal, synapse=tau)
+    nengo.Connection(s2, x4.neurons, function=negative_signal, synapse=tau)
+    
+    thresh3 = make_thresh_ens_net(0.47, radius=1)
+    nengo.Connection(x3, thresh3.input, function= lambda x: x-0.5, synapse=tau)
+    nengo.Connection(thresh3.output, s2,         
+                    transform=[100], synapse=tau)
+                    
+    thresh4 = make_thresh_ens_net(0.47, radius=1)  
+    nengo.Connection(x4, thresh4.input, function= lambda x: x-0.5, synapse=tau)
+    nengo.Connection(thresh4.output, s2,         
                     transform=[-100], synapse=tau)
