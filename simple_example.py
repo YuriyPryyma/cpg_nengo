@@ -34,23 +34,24 @@ def make_thresh_ens_net(threshold=0.5, thresh_func=lambda x: 1,
 
 tau = 0.01
 
-radius=np.sqrt(2)
-
 def grouth_equesions(x):
     return x + 4 * tau
 
 model = nengo.Network(seed=42)
 with model: 
-    state = nengo.Ensemble(1000, 1, radius=radius)
+    # state = nengo.Ensemble(1000, 1, radius=0.52)
+    # nengo.Connection(state, state, function=grouth_equesions,  synapse=tau)
+    # thresh = make_thresh_ens_net(0.37, radius=1)
+    # nengo.Connection(state, thresh.input, function= lambda x: x-0.1, synapse=tau)
+    # nengo.Connection(thresh.output, state,
+    #                      transform=[-40],  synapse=tau)
+    
+    state = nengo.Ensemble(1000, 1, radius=1.02)
     nengo.Connection(state, state, function=grouth_equesions,  synapse=tau)
-     
-
-    thresh = make_thresh_ens_net(0.41, radius=1.2)
-    
-    nengo.Connection(state, thresh.input, function= lambda x: x-0.5, synapse=tau)
-    
+    thresh = make_thresh_ens_net(0.37, radius=1)
+    nengo.Connection(state, thresh.input, function= lambda x: x-0.6, synapse=tau)
     nengo.Connection(thresh.output, state.neurons,
-                         transform=[[-999]] * state.n_neurons,  synapse=tau)
-                         
+                     transform=[[-999]] * state.n_neurons,  synapse=tau)
+    
                          
                          

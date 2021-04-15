@@ -6,18 +6,17 @@ radius = np.sqrt(2)
 tau = 0.01
 
 def create_CPG(*, params, state_neurons=400):
+    init_swing = params[0]
+    init_stance = params[1]
+    speed_swing = params[2]
+    speed_stance = params[3] 
+    inner_inhibit = params[4]
     
-    init_swing = 2.7136
-    init_stance = 0
-    speed_swing = 1.1668
-    speed_stance = 1.6596
-    inner_inhibit = -0.009
+    swing_swing_connection = params[5]
+    stance_swing_connection = params[6]
     
-    swing_swing_connection = 0.0921
-    stance_swing_connection = -0.0636
-    
-    swing_stance_connection = -0.0934
-    stance_stance_connection = 0.01246
+    swing_stance_connection = params[7]
+    stance_stance_connection = params[8]
     
     def swing_feedback(state):
         x, speed = state
@@ -28,7 +27,6 @@ def create_CPG(*, params, state_neurons=400):
         x, speed = state
         dX = init_stance + speed_stance*(1+speed*2) + inner_inhibit*x
         return dX*tau + x
-    
     
     def positive_signal(x):
         if x > 0:
@@ -82,48 +80,48 @@ def create_CPG(*, params, state_neurons=400):
                 0.01: 0,
             }), label="start_signal")
             
-        s1 = nengo.Ensemble(2, 1, radius=1, intercepts=[0,0], 
+        model.s1 = nengo.Ensemble(2, 1, radius=1, intercepts=[0,0], 
                             encoders=[[-1],[1]], label="s1")
-        nengo.Connection(s1, s1, synapse=tau)
+        nengo.Connection(model.s1, model.s1, synapse=tau)
         
-        nengo.Connection(start_signal, s1, synapse=tau)
+        nengo.Connection(start_signal, model.s1, synapse=tau)
         
-        nengo.Connection(s1, swing1.neurons, function=positive_signal, synapse=tau)
-        nengo.Connection(s1, stance1.neurons, function=negative_signal, synapse=tau)
+        nengo.Connection(model.s1, swing1.neurons, function=positive_signal, synapse=tau)
+        nengo.Connection(model.s1, stance1.neurons, function=negative_signal, synapse=tau)
         
         thresh1 = nengo.Ensemble(1, 1, intercepts=[0.47], 
                                 encoders=[[1]], label="thresh1")
         nengo.Connection(swing1[0], thresh1, function= lambda x: x-0.5, synapse=tau)
-        nengo.Connection(thresh1, s1,
+        nengo.Connection(thresh1, model.s1,
                         transform=[100], synapse=tau)
                         
         thresh2 = nengo.Ensemble(1, 1, intercepts=[0.47], 
                                 encoders=[[1]], label="thresh2")
         nengo.Connection(stance1[0], thresh2, function= lambda x: x-0.5, synapse=tau)
-        nengo.Connection(thresh2, s1,
+        nengo.Connection(thresh2, model.s1,
                         transform=[-100], synapse=tau)
                         
         
-        s2 = nengo.Ensemble(2, 1, radius=1, intercepts=[0,0], 
+        model.s2 = nengo.Ensemble(2, 1, radius=1, intercepts=[0,0], 
                             encoders=[[-1],[1]], label="s2")
-        nengo.Connection(s2, s2, synapse=tau)
+        nengo.Connection(model.s2, model.s2, synapse=tau)
         
-        nengo.Connection(start_signal, s2, synapse=tau)
+        nengo.Connection(start_signal, model.s2, synapse=tau)
         
-        nengo.Connection(s2, swing2.neurons, function=positive_signal, synapse=tau)
-        nengo.Connection(s2, stance2.neurons, function=negative_signal, synapse=tau)
+        nengo.Connection(model.s2, swing2.neurons, function=positive_signal, synapse=tau)
+        nengo.Connection(model.s2, stance2.neurons, function=negative_signal, synapse=tau)
         
         thresh3 = nengo.Ensemble(1, 1, intercepts=[0.47], 
                                 encoders=[[1]], label="thresh3")
         nengo.Connection(swing2[0], thresh3, function= lambda x: x-0.5, 
                         synapse=tau)
-        nengo.Connection(thresh3, s2,         
+        nengo.Connection(thresh3, model.s2,         
                         transform=[100], synapse=tau)
                         
         thresh4 = nengo.Ensemble(1, 1, intercepts=[0.47], 
                                 encoders=[[1]], label="thresh4")
         nengo.Connection(stance2[0], thresh4, function= lambda x: x-0.5, synapse=tau)
-        nengo.Connection(thresh4, s2,         
+        nengo.Connection(thresh4, model.s2,         
                         transform=[-100], synapse=tau)
                         
         speed_signal = nengo.Node([0], label="speed_signal")
