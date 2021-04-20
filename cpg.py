@@ -1,6 +1,7 @@
 import nengo
 import numpy as np
 from nengo.processes import Piecewise
+from nengo.dists import Uniform
 
 radius = np.sqrt(2)
 tau = 0.01
@@ -20,12 +21,12 @@ def create_CPG(*, params, state_neurons=400):
     
     def swing_feedback(state):
         x, speed = state
-        dX = init_swing + speed_swing*(1+speed*2) + inner_inhibit*x
+        dX = init_swing + speed_swing*(1+speed) + inner_inhibit*x
         return dX*tau + x
     
     def stance_feedback(state):
         x, speed = state
-        dX = init_stance + speed_stance*(1+speed*2) + inner_inhibit*x
+        dX = init_stance + speed_stance*(1+speed) + inner_inhibit*x
         return dX*tau + x
     
     def positive_signal(x):
@@ -42,34 +43,47 @@ def create_CPG(*, params, state_neurons=400):
         
     model = nengo.Network(seed=42)
     with model:
-        swing1 = nengo.Ensemble(state_neurons, 2, radius=radius, label="swing1")
         
-        stance1 = nengo.Ensemble(state_neurons, 2, radius=radius, label="stance1")
+        eval_points_dist = Uniform(0, 1)
         
-        swing2 = nengo.Ensemble(state_neurons, 2, radius=radius, label="swing2")
+        swing1 = nengo.Ensemble(state_neurons, 2, radius=radius, label="swing1",
+                                eval_points=eval_points_dist)
         
-        stance2 = nengo.Ensemble(state_neurons, 2, radius=radius, label="stance2")
+        stance1 = nengo.Ensemble(state_neurons, 2, radius=radius, label="stance1",
+                                eval_points=eval_points_dist)
         
-        nengo.Connection(swing1, swing1[0], function=swing_feedback, synapse=tau)
-        nengo.Connection(stance1, stance1[0], function=stance_feedback, synapse=tau)
-        nengo.Connection(swing2, swing2[0], function=swing_feedback, synapse=tau)
-        nengo.Connection(stance2, stance2[0], function=stance_feedback, synapse=tau)
+        swing2 = nengo.Ensemble(state_neurons, 2, radius=radius, label="swing2",
+                                eval_points=eval_points_dist)
+        
+        stance2 = nengo.Ensemble(state_neurons, 2, radius=radius, label="stance2",
+                                eval_points=eval_points_dist)
+        
+        eval_points_sample = np.random.rand(10000, 2)
+        
+        nengo.Connection(swing1, swing1[0], function=swing_feedback, synapse=tau,
+                        eval_points=eval_points_sample)
+        nengo.Connection(stance1, stance1[0], function=stance_feedback, synapse=tau,
+                        eval_points=eval_points_sample)
+        nengo.Connection(swing2, swing2[0], function=swing_feedback, synapse=tau,
+                        eval_points=eval_points_sample)
+        nengo.Connection(stance2, stance2[0], function=stance_feedback, synapse=tau,
+                        eval_points=eval_points_sample)
         
         for group in [(swing1, stance1, swing2, stance2), (swing2, stance2, swing1, stance1)]:
             swing_left, stance_left, swing_right, stance_right = group
-            nengo.Connection(swing_left[0], swing_right[0], 
+            nengo.Connection(swing_left, swing_right, 
                 function=lambda x: tau*(1-x)*swing_swing_connection, 
                 synapse=tau)
                 
-            nengo.Connection(swing_left[0], stance_right[0], 
+            nengo.Connection(swing_left, stance_right, 
                 function=lambda x: tau*(1-x)*swing_stance_connection, 
                 synapse=tau)
                 
-            nengo.Connection(stance_left[0], swing_right[0], 
+            nengo.Connection(stance_left, swing_right, 
                 function=lambda x: tau*(1-x)*stance_swing_connection, 
                 synapse=tau)
                 
-            nengo.Connection(stance_left[0], stance_right[0], 
+            nengo.Connection(stance_left, stance_right, 
                 function=lambda x: tau*(1-x)*stance_stance_connection, 
                 synapse=tau)
         
@@ -124,27 +138,31 @@ def create_CPG(*, params, state_neurons=400):
         nengo.Connection(thresh4, model.s2,         
                         transform=[-100], synapse=tau)
                         
-        speed_signal = nengo.Node([0], label="speed_signal")
-        nengo.Connection(speed_signal, swing1[1], synapse=None)
-        nengo.Connection(speed_signal, stance1[1], synapse=None)
-        nengo.Connection(speed_signal, swing2[1], synapse=None)
-        nengo.Connection(speed_signal, stance2[1], synapse=None)
+        speed = nengo.Ensemble(int(state_neurons/2), 1, label="speed")
+        nengo.Connection(speed, speed, synapse=0.1)
+        nengo.Connection(thresh2, speed,
+                        transform=[2], synapse=0.1)
+                        
+        nengo.Connection(speed, swing1[1], synapse=tau)
+        nengo.Connection(speed, stance1[1], synapse=tau)
+        nengo.Connection(speed, swing2[1], synapse=tau)
+        nengo.Connection(speed, stance2[1], synapse=tau)
         
-        start_state = nengo.Node(
-            Piecewise({
-                0: [0.01, 0, 0.5, 0],
-                0.01: [0, 0, 0, 0],
-            }), label="start_state")
+        # start_state = nengo.Node(
+        #     Piecew    ise({
+        #         0: [0.01, 0, 0, 0],
+        #         0.01: [0, 0, 0, 0],
+        #     }), label="start_state")
         
-        nengo.Connection(start_state[0], swing1[0], synapse=None)
-        nengo.Connection(start_state[1], stance1[0], synapse=None)
-        nengo.Connection(start_state[2], swing2[0], synapse=None)
-        nengo.Connection(start_state[3], stance2[0], synapse=None)
+        # nengo.Connection(start_state[0], swing1[0], synapse=None)
+        # nengo.Connection(start_state[1], stance1[0], synapse=None)
+        # nengo.Connection(start_state[2], swing2[0], synapse=None)
+        # nengo.Connection(start_state[3], stance2[0], synapse=None)
     
     return model
 
 
 params = [2.7136, 0, 1.1668, 1.6596, -0.009, 0.0921, -0.0636, -0.0934, 0.01246]
 
-model = create_CPG(params=params)
+model = create_CPG(params=params, state_neurons=600)
     
