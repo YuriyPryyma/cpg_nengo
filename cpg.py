@@ -8,26 +8,17 @@ tau = 0.01
 
 
 def create_CPG(*, params, state_neurons=400):
-    init_swing = params[0]
-    init_stance = params[1]
-    speed_swing = params[2]
-    speed_stance = params[3]
-    inner_inhibit = params[4]
-
-    sw_sw_con = params[5]
-    st_sw_con = params[6]
-
-    sw_st_con = params[7]
-    st_st_con = params[8]
 
     def swing_feedback(state):
         x, speed = state
-        dX = init_swing + speed_swing * (1 + speed) + inner_inhibit * x
+        dX = params["init_swing"] + params["speed_swing"] * \
+            (1 + speed)  # + params["inner_inhibit"] * x
         return dX * tau + x
 
     def stance_feedback(state):
         x, speed = state
-        dX = init_stance + speed_stance * (1 + speed) + inner_inhibit * x
+        dX = params["init_stance"] + params["speed_stance"] * \
+            (1 + speed)  # + params["inner_inhibit"] * x
         return dX * tau + x
 
     def positive_signal(x):
@@ -73,24 +64,28 @@ def create_CPG(*, params, state_neurons=400):
         nengo.Connection(stance2, stance2[0], function=stance_feedback,
                          synapse=tau, eval_points=eval_points_sample)
 
-        for group in [(swing1, stance1, swing2, stance2),
-                      (swing2, stance2, swing1, stance1)]:
-            swing_left, stance_left, swing_right, stance_right = group
-            nengo.Connection(swing_left[0], swing_right[0],
-                             function=lambda x: tau * (1 - x) * sw_sw_con,
-                             synapse=tau)
+        # for group in [(swing1, stance1, swing2, stance2),
+        #               (swing2, stance2, swing1, stance1)]:
+        #     swing_left, stance_left, swing_right, stance_right = group
+        #     nengo.Connection(swing_left[0], swing_right[0],
+        #                      function=lambda x:
+        #                      tau * (1 - x) * params["sw_sw_con"],
+        #                      synapse=tau)
 
-            nengo.Connection(swing_left[0], stance_right[0],
-                             function=lambda x: tau * (1 - x) * sw_st_con,
-                             synapse=tau)
+        #     nengo.Connection(swing_left[0], stance_right[0],
+        #                      function=lambda x:
+        #                      tau * (1 - x) * params["sw_st_con"],
+        #                      synapse=tau)
 
-            nengo.Connection(stance_left[0], swing_right[0],
-                             function=lambda x: tau * (1 - x) * st_sw_con,
-                             synapse=tau)
+        #     nengo.Connection(stance_left[0], swing_right[0],
+        #                      function=lambda x:
+        #                      tau * (1 - x) * params["st_sw_con"],
+        #                      synapse=tau)
 
-            nengo.Connection(stance_left[0], stance_right[0],
-                             function=lambda x: tau * (1 - x) * st_st_con,
-                             synapse=tau)
+        #     nengo.Connection(stance_left[0], stance_right[0],
+        #                      function=lambda x:
+        #                      tau * (1 - x) * params["st_st_con"],
+        #                      synapse=tau)
 
         start_signal1 = nengo.Node(
             Piecewise({
@@ -156,8 +151,8 @@ def create_CPG(*, params, state_neurons=400):
         model.speed = nengo.Ensemble(state_neurons, 1, label="speed")
         nengo.Connection(model.speed, model.speed, synapse=0.1)
         nengo.Connection(thresh2, model.speed,
-                         transform=[0.3], synapse=0.1,
-                         eval_points=np.random.rand(5000, 1))
+                         transform=[0.25], synapse=0.1,
+                         eval_points=np.random.rand(10000, 1))
 
         nengo.Connection(model.speed, swing1[1], synapse=tau)
         nengo.Connection(model.speed, stance1[1], synapse=tau)
@@ -178,7 +173,16 @@ def create_CPG(*, params, state_neurons=400):
     return model
 
 
-params = [2.7137, 0, 1.1668, 1.6596, -0.009, 0.0921, -0.0636, -0.0934, 0.01246]
+params = {
+    "init_swing": 2.7136,
+    "init_stance": 0,
+    "speed_swing": 1.1668,
+    "speed_stance": 1.6596,
+    "inner_inhibit": -0.009,
+    "sw_sw_con": 0.0921,
+    "st_sw_con": -0.0636,
+    "sw_st_con": -0.0934,
+    "st_st_con": 0.01246,
+}
 
-model = create_CPG(params=params, state_neurons=400)
-
+model = create_CPG(params=params, state_neurons=2000)
