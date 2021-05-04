@@ -11,14 +11,14 @@ def create_CPG(*, params, state_neurons=400):
 
     def swing_feedback(state):
         x, speed = state
-        dX = params["init_swing"] + params["speed_swing"] * \
-            (1 + speed)  # + params["inner_inhibit"] * x
+        dX = params["init_swing"] + params["speed_swing"] * speed
+        # + params["inner_inhibit"] * x
         return dX * tau + x
 
     def stance_feedback(state):
         x, speed = state
-        dX = params["init_stance"] + params["speed_stance"] * \
-            (1 + speed)  # + params["inner_inhibit"] * x
+        dX = params["init_stance"] + params["speed_stance"] * speed
+        # + params["inner_inhibit"] * x
         return dX * tau + x
 
     def positive_signal(x):
@@ -175,7 +175,7 @@ def create_CPG(*, params, state_neurons=400):
 
 params = {
     "init_swing": 2.7136,
-    "init_stance": 0,
+    "init_stance": 1,
     "speed_swing": 1.1668,
     "speed_stance": 1.6596,
     "inner_inhibit": -0.009,

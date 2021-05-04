@@ -1,4 +1,3 @@
-import numpy as np
 from scipy.optimize import minimize
 
 from optimize import simulation_error
@@ -6,7 +5,7 @@ from optimize import simulation_error
 
 def scipy_wrapper(func):
     def inner(params, info):
-        error, error_rms, error_range= func(params)
+        error, _, _ = func(params)
 
         print(f"step {info['Nfeval']} error {error}")
         info['Nfeval'] += 1

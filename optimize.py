@@ -5,10 +5,6 @@ from cpg import create_CPG
 
 tau = 0.01
 
-# Halbert sma minmax(Tc)
-expected_min_range = .57
-expected_max_range = 1.91
-
 
 def findall(p, s):
     '''Yields all the positions of
@@ -21,7 +17,7 @@ def findall(p, s):
     return r
 
 
-def calc_swing_stance(state_probe):
+def calc_swing_stance(state_probe, speed_state):
     s1_state_changes = state_probe < 0
 
     state_str = "".join([str(int(s)) for s in s1_state_changes])
@@ -29,12 +25,27 @@ def calc_swing_stance(state_probe):
     stance_swing = findall("01", state_str)
     swing_stance = findall("10", state_str)
 
-    swing_duration = [(right - left) / 1000 for left, right
-                      in zip(stance_swing, swing_stance)]
-    stance_duration = [(right - left) / 1000 for left, right
-                       in zip(swing_stance, stance_swing[1:])]
+    swing_cycles = [(right - left) / 1000 for left, right
+                    in zip(stance_swing, swing_stance)]
+    stance_cycles = [(right - left) / 1000 for left, right
+                     in zip(swing_stance, stance_swing[1:])]
 
-    return np.array(swing_duration), np.array(stance_duration)
+    swing_speed = [np.mean([speed_state[i] for i in range(left, right)])
+                   for left, right in zip(stance_swing, swing_stance)]
+
+    stance_speed = [np.mean([speed_state[i] for i in range(left, right)])
+                    for left, right in zip(swing_stance, stance_swing[1:])]
+
+    full_cycles = min(len(swing_cycles), len(stance_cycles))
+
+    swing_cycles = swing_cycles[:full_cycles]
+    stance_cycles = stance_cycles[:full_cycles]
+
+    swing_speed = swing_speed[:full_cycles]
+    stance_speed = stance_speed[:full_cycles]
+    speed_cycles = np.mean([swing_speed, stance_speed], axis=0)
+
+    return np.array(swing_cycles), np.array(stance_cycles), speed_cycles
 
 
 def cycle_to_swing(cycle):
@@ -45,29 +56,33 @@ def cycle_to_stance(cycle):
     return -0.168 + 0.9062 * cycle
 
 
-def calc_error(state_probe):
-    swing_duration, stance_duration = calc_swing_stance(state_probe)
-    full_cycles = min(len(swing_duration), len(stance_duration))
-    swing_duration = swing_duration[:full_cycles]
-    stance_duration = stance_duration[:full_cycles]
-    combined_cycle = swing_duration + stance_duration
-    swing_true = cycle_to_swing(combined_cycle)
-    stance_true = cycle_to_stance(combined_cycle)
+def speed_to_cycle(speed):
+    """
+    Halbert sma minmax(Tc)
+    [.57, 1.91]
+    """
+    return 1.91 - 1.34 * speed
 
-    err_swing = mean_squared_error(swing_true,
-                                   swing_duration, squared=False)
-    err_stance = mean_squared_error(stance_true,
-                                    stance_duration, squared=False)
-    rms_error = err_swing + err_stance
 
-    min_range = min(combined_cycle)
-    max_range = max(combined_cycle)
-    err_range_min = abs(expected_min_range - min_range)
-    err_range_max = abs(expected_max_range - max_range)
-    error_range = (err_range_min + err_range_max) / \
-                  (expected_max_range - expected_min_range)
+def calc_error(state_probe, speed_state):
+    swing_cycles, stance_cycles, speed_cycles = \
+        calc_swing_stance(state_probe, speed_state)
 
-    return rms_error, error_range
+    combined_cycles = swing_cycles + stance_cycles
+
+    swing_expected = cycle_to_swing(combined_cycles)
+    stance_expected = cycle_to_stance(combined_cycles)
+    err_swing = mean_squared_error(swing_expected,
+                                   swing_cycles, squared=False)
+    err_stance = mean_squared_error(stance_expected,
+                                    stance_cycles, squared=False)
+    error_phase = err_swing + err_stance
+
+    cycles_duration_expected = speed_to_cycle(speed_cycles)
+    error_speed = mean_squared_error(cycles_duration_expected,
+                                     combined_cycles, squared=False)
+
+    return error_phase, error_speed
 
 
 def simulation_error(params):
@@ -76,29 +91,33 @@ def simulation_error(params):
     with model:
         s1_probe = nengo.Probe(model.s1, synapse=tau)
         s2_probe = nengo.Probe(model.s2, synapse=tau)
+        speed_probe = nengo.Probe(model.speed, synapse=tau)
 
     with nengo.Simulator(model, progress_bar=False) as sim:
         sim.run(100)
 
     s1_state = sim.data[s1_probe]
     s2_state = sim.data[s2_probe]
+    speed_state = sim.data[speed_probe]
 
     try:
-        error_left_rms, error_left_range = calc_error(s1_state)
-        error_right_rms, error_right_range = calc_error(s2_state)
-        error_rms = error_left_rms + error_right_rms
-        error_range = error_left_range + error_right_range
+        error_left_phase, error_left_speed = \
+            calc_error(s1_state, speed_state)
+        error_right_phase, error_right_speed = \
+            calc_error(s2_state, speed_state)
+        error_phase = error_left_phase + error_right_phase
+        error_speed = error_left_speed + error_right_speed
 
         # err_sym_st = np.sum((s1_state > 0) * (s2_state > 0)) / len(s1_state)
         # err_sym_sw = np.sum((s1_state < 0) * (s2_state < 0)) / len(s1_state)
 
         # error_symmetricity = err_sym_st + err_sym_sw
-        
+
     except Exception as e:
         print("error calc", e)
-        error_rms = 10
-        error_range = 10
+        error_phase = 10
+        error_speed = 10
 
-    error = error_rms + error_range
+    error = error_phase + 0.1 * error_speed
 
-    return error, error_rms, error_range
+    return error, error_phase, error_speed
