@@ -7,6 +7,8 @@ from optimize_hyperopt import ray_wrapper
 
 if __name__ == "__main__":
 
+    #{'init_swing': 5.997429306867969, 'init_stance': 1.2638318361746603, 'speed_swing': 2.4725497299430965, 'speed_stance': 5.69245036387249}
+
     ray_simulation_error = ray_wrapper(simulation_error)
 
     algo = HEBOSearch(
