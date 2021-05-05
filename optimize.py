@@ -108,16 +108,24 @@ def simulation_error(params):
         error_phase = error_left_phase + error_right_phase
         error_speed = error_left_speed + error_right_speed
 
-        # err_sym_st = np.sum((s1_state > 0) * (s2_state > 0)) / len(s1_state)
-        # err_sym_sw = np.sum((s1_state < 0) * (s2_state < 0)) / len(s1_state)
+        swing1 = s1_state < 0
+        stance1 = s1_state > 0
 
-        # error_symmetricity = err_sym_st + err_sym_sw
+        swing2 = s2_state < 0
+        stance2 = s2_state > 0
+
+        sw1_in_st2 = np.sum(swing1 * stance2) / np.sum(swing1)
+        sw2_in_st1 = np.sum(swing2 * stance1) / np.sum(swing2)
+        sw_interect = np.sum(swing1 * swing2) / np.sum(swing1 | swing2)
+
+        error_symmetricity = (1 - sw1_in_st2) + (1 - sw2_in_st1) + sw_interect
 
     except Exception as e:
         print("error calc", e)
         error_phase = 10
         error_speed = 10
+        error_symmetricity = 10
 
-    error = error_phase + 0.1 * error_speed
+    error = error_phase + 0.1 * error_speed + 0.1 * error_symmetricity
 
-    return error, error_phase, error_speed
+    return error, error_phase, error_speed, error_symmetricity

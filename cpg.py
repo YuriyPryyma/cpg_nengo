@@ -151,7 +151,7 @@ def create_CPG(*, params, state_neurons=400):
         model.speed = nengo.Ensemble(state_neurons, 1, label="speed")
         nengo.Connection(model.speed, model.speed, synapse=0.1)
         nengo.Connection(thresh2, model.speed,
-                         transform=[0.25], synapse=0.1,
+                         transform=[0.47], synapse=0.1,
                          eval_points=np.random.rand(10000, 1))
 
         nengo.Connection(model.speed, swing1[1], synapse=tau)

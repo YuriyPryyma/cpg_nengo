@@ -2,7 +2,7 @@ from datetime import datetime
 from ray import tune
 from ray.tune.suggest.hebo import HEBOSearch
 from optimize import simulation_error
-from optimize_hyperout import ray_wrapper
+from optimize_hyperopt import ray_wrapper
 
 
 if __name__ == "__main__":
