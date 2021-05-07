@@ -68,7 +68,7 @@ def calc_error(state_probe, speed_state):
     return error_phase, error_speed
 
 
-def simulation_error(params):
+def simulation(params, time=95, progress_bar=False):
     model = create_CPG(params=params, state_neurons=2000)
 
     with model:
@@ -76,18 +76,35 @@ def simulation_error(params):
         s2_probe = nengo.Probe(model.s2, synapse=tau)
         speed_probe = nengo.Probe(model.speed, synapse=tau)
 
-    with nengo.Simulator(model, progress_bar=False) as sim:
-        sim.run(100)
+        swing1_probe = nengo.Probe(model.swing1, synapse=tau)
+        stance1_probe = nengo.Probe(model.stance1, synapse=tau)
+        swing2_probe = nengo.Probe(model.swing2, synapse=tau)
+        stance2_probe = nengo.Probe(model.stance2, synapse=tau)
 
-    s1_state = sim.data[s1_probe]
-    s2_state = sim.data[s2_probe]
-    speed_state = sim.data[speed_probe]
+    with nengo.Simulator(model, progress_bar=progress_bar) as sim:
+        sim.run(time)
+
+    return {
+        "s1_state": sim.data[s1_probe],
+        "s2_state": sim.data[s2_probe],
+        "speed_state": sim.data[speed_probe],
+        "swing1_state": sim.data[swing1_probe],
+        "stance1_state": sim.data[stance1_probe],
+        "swing2_state": sim.data[swing2_probe],
+        "stance2_state": sim.data[stance2_probe],
+    }
+
+
+def simulation_error(params, time=95):
+    history = simulation(params, time)
+
+    s1_state = history["s1_state"]
+    s2_state = history["s2_state"]
+    speed_state = history["speed_state"]
 
     try:
-        error_left_phase, error_left_speed = \
-            calc_error(s1_state, speed_state)
-        error_right_phase, error_right_speed = \
-            calc_error(s2_state, speed_state)
+        error_left_phase, error_left_speed = calc_error(s1_state, speed_state)
+        error_right_phase, error_right_speed = calc_error(s2_state, speed_state)
         error_phase = error_left_phase + error_right_phase
         error_speed = error_left_speed + error_right_speed
 
@@ -99,7 +116,6 @@ def simulation_error(params):
 
         sw1_in_st2 = np.sum(swing1 & stance2) / np.sum(swing1)
         sw2_in_st1 = np.sum(swing2 & stance1) / np.sum(swing2)
-        # have to be!!!
         sw_interect = np.sum(swing1 & swing2) / np.sum(swing1 | swing2)
 
         error_symmetricity = (1 - sw1_in_st2) + (1 - sw2_in_st1) + sw_interect
