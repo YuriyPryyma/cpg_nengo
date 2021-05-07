@@ -5,6 +5,9 @@ from cpg import create_CPG
 
 tau = 0.01
 
+# Halbert sma minmax(Tc)
+MIN_PHASE, MAX_PHASE = (.57, 1.91)
+
 
 def findall(p, s):
     '''Yields all the positions of
@@ -30,22 +33,12 @@ def calc_swing_stance(state_probe, speed_state):
     stance_cycles = [(right - left) / 1000 for left, right
                      in zip(swing_stance, stance_swing[1:])]
 
-    swing_speed = [np.mean([speed_state[i] for i in range(left, right)])
-                   for left, right in zip(stance_swing, swing_stance)]
-
-    stance_speed = [np.mean([speed_state[i] for i in range(left, right)])
-                    for left, right in zip(swing_stance, stance_swing[1:])]
-
     full_cycles = min(len(swing_cycles), len(stance_cycles))
 
     swing_cycles = swing_cycles[:full_cycles]
     stance_cycles = stance_cycles[:full_cycles]
 
-    swing_speed = swing_speed[:full_cycles]
-    stance_speed = stance_speed[:full_cycles]
-    speed_cycles = np.mean([swing_speed, stance_speed], axis=0)
-
-    return np.array(swing_cycles), np.array(stance_cycles), speed_cycles
+    return np.array(swing_cycles), np.array(stance_cycles)
 
 
 def cycle_to_swing(cycle):
@@ -56,17 +49,8 @@ def cycle_to_stance(cycle):
     return -0.168 + 0.9062 * cycle
 
 
-def speed_to_cycle(speed):
-    """
-    Halbert sma minmax(Tc)
-    [.57, 1.91]
-    """
-    return 1.91 - 1.34 * speed
-
-
 def calc_error(state_probe, speed_state):
-    swing_cycles, stance_cycles, speed_cycles = \
-        calc_swing_stance(state_probe, speed_state)
+    swing_cycles, stance_cycles = calc_swing_stance(state_probe, speed_state)
 
     combined_cycles = swing_cycles + stance_cycles
 
@@ -78,9 +62,8 @@ def calc_error(state_probe, speed_state):
                                     stance_cycles, squared=False)
     error_phase = err_swing + err_stance
 
-    cycles_duration_expected = speed_to_cycle(speed_cycles)
-    error_speed = mean_squared_error(cycles_duration_expected,
-                                     combined_cycles, squared=False)
+    error_speed = abs(MIN_PHASE - min(combined_cycles)) + \
+        abs(MAX_PHASE - max(combined_cycles))
 
     return error_phase, error_speed
 
@@ -114,9 +97,10 @@ def simulation_error(params):
         swing2 = s2_state < 0
         stance2 = s2_state > 0
 
-        sw1_in_st2 = np.sum(swing1 * stance2) / np.sum(swing1)
-        sw2_in_st1 = np.sum(swing2 * stance1) / np.sum(swing2)
-        sw_interect = np.sum(swing1 * swing2) / np.sum(swing1 | swing2)
+        sw1_in_st2 = np.sum(swing1 & stance2) / np.sum(swing1)
+        sw2_in_st1 = np.sum(swing2 & stance1) / np.sum(swing2)
+        # have to be!!!
+        sw_interect = np.sum(swing1 & swing2) / np.sum(swing1 | swing2)
 
         error_symmetricity = (1 - sw1_in_st2) + (1 - sw2_in_st1) + sw_interect
 

@@ -20,7 +20,7 @@ if __name__ == "__main__":
 
     algo = HyperOptSearch()
 
-    now = datetime.now().strftime('%Y_%m_%d-%I_%M_%S_%p')
+    now = datetime.now().strftime('%Y_%m_%d-%H:%M:%S')
 
     analysis = tune.run(
         ray_simulation_error,
@@ -28,13 +28,13 @@ if __name__ == "__main__":
         search_alg=algo,
         metric="error",
         mode="min",
-        num_samples=200,
+        num_samples=300,
         resources_per_trial={"cpu": 1},
         config={
-            "init_swing": tune.uniform(0, 7),
-            "init_stance": tune.uniform(0, 7),
-            "speed_swing": tune.uniform(0, 7),
-            "speed_stance": tune.uniform(0, 7),
+            "init_swing": tune.uniform(3, 6),
+            "init_stance": tune.uniform(0, 5),
+            "speed_swing": tune.uniform(0, 6),
+            "speed_stance": tune.uniform(0, 3),
             # "inner_inhibit": tune.uniform(-1, 4),
             # "sw_sw_con": tune.uniform(-1, 4),
             # "st_sw_con": tune.uniform(-1, 4),

@@ -159,6 +159,7 @@ def create_CPG(*, params, state_neurons=400):
         nengo.Connection(model.speed, swing2[1], synapse=tau)
         nengo.Connection(model.speed, stance2[1], synapse=tau)
 
+        # use initi only for stance
         # start_state = nengo.Node(
         #     Piecew    ise({
         #         0: [0.01, 0, 0, 0],
