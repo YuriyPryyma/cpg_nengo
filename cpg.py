@@ -11,14 +11,14 @@ def create_CPG(*, params, state_neurons=400):
 
     def swing_feedback(state):
         x, speed = state
-        dX = params["init_swing"] + params["speed_swing"] * speed
-        # + params["inner_inhibit"] * x
+        dX = params["init_swing"] + params["speed_swing"] * speed + \
+            params["inner_inhibit"] * x
         return dX * tau + x
 
     def stance_feedback(state):
         x, speed = state
-        dX = params["init_stance"] + params["speed_stance"] * speed
-        # + params["inner_inhibit"] * x
+        dX = params["init_stance"] + params["speed_stance"] * speed + \
+            params["inner_inhibit"] * x
         return dX * tau + x
 
     def positive_signal(x):
@@ -68,28 +68,28 @@ def create_CPG(*, params, state_neurons=400):
                          function=stance_feedback,
                          synapse=tau, eval_points=eval_points_sample)
 
-        # for group in [(swing1, stance1, swing2, stance2),
-        #               (swing2, stance2, swing1, stance1)]:
-        #     swing_left, stance_left, swing_right, stance_right = group
-        #     nengo.Connection(swing_left[0], swing_right[0],
-        #                      function=lambda x:
-        #                      tau * (1 - x) * params["sw_sw_con"],
-        #                      synapse=tau)
+        for group in [(model.swing1, model.stance1, model.swing2, model.stance2),
+                      (model.swing2, model.stance2, model.swing1, model.stance1)]:
+            swing_left, stance_left, swing_right, stance_right = group
+            nengo.Connection(swing_left[0], swing_right[0],
+                             function=lambda x:
+                             tau * (1 - x) * params["sw_sw_con"],
+                             synapse=tau)
 
-        #     nengo.Connection(swing_left[0], stance_right[0],
-        #                      function=lambda x:
-        #                      tau * (1 - x) * params["sw_st_con"],
-        #                      synapse=tau)
+            nengo.Connection(swing_left[0], stance_right[0],
+                             function=lambda x:
+                             tau * (1 - x) * params["sw_st_con"],
+                             synapse=tau)
 
-        #     nengo.Connection(stance_left[0], swing_right[0],
-        #                      function=lambda x:
-        #                      tau * (1 - x) * params["st_sw_con"],
-        #                      synapse=tau)
+            nengo.Connection(stance_left[0], swing_right[0],
+                             function=lambda x:
+                             tau * (1 - x) * params["st_sw_con"],
+                             synapse=tau)
 
-        #     nengo.Connection(stance_left[0], stance_right[0],
-        #                      function=lambda x:
-        #                      tau * (1 - x) * params["st_st_con"],
-        #                      synapse=tau)
+            nengo.Connection(stance_left[0], stance_right[0],
+                             function=lambda x:
+                             tau * (1 - x) * params["st_st_con"],
+                             synapse=tau)
 
         def create_switcher(leg, swing, stance, init="swing"):
             start_signal = nengo.Node(
