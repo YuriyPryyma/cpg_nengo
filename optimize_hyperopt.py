@@ -16,7 +16,7 @@ if __name__ == "__main__":
         search_alg=algo,
         metric="error",
         mode="min",
-        num_samples=500,
+        num_samples=1000,
         resources_per_trial={"cpu": 1},
         config=utils.search_space)
 
