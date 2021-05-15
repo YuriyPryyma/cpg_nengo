@@ -18,10 +18,10 @@ if __name__ == "__main__":
 
     history = json.load(open("history.json"))
 
-    for start, end in [(0, 5), (40, 45), (90, 95)]:
+    for i, j in [(0, 5), (40, 45), (90, 95)]:
 
-        start = start * 1000
-        end = end * 1000
+        start = i * 1000
+        end = j * 1000
 
         times = np.array(list(range(start, end))) / 1000
 
@@ -30,7 +30,10 @@ if __name__ == "__main__":
         axes[0].plot(times, history["stance1_state"][start:end], color="b")
         axes[1].plot(times, history["swing2_state"][start:end], color="r")
         axes[1].plot(times, history["stance2_state"][start:end], color="b")
-        plt.show()
+
+        fig.savefig(f"{i}_{j}_sec")
+
+        # plt.show()
 
     fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(30, 15))
 
@@ -63,4 +66,6 @@ if __name__ == "__main__":
         axes[i].set_xlabel("Cycle duration", fontsize=16)
         axes[i].set_ylabel("Swing/Stance duration", fontsize=16)
 
-    plt.show()
+    fig.savefig(f"phase_durations")
+
+    #plt.show()
