@@ -20,28 +20,28 @@ def exp_name(Alg):
 
 best_params = [
     {
-        "init_stance": 0.65995,
-        "init_stance_position": 0.86596,
-        "init_swing": 5.1540,
-        "speed_stance": 3.4672,
-        "speed_swing": 5.6165,
-        "inner_inhibit": -0.28419,
-        "sw_sw_con": -0.19935,
-        "st_sw_con": 0.62068,
-        "sw_st_con": -0.29972,
-        "st_st_con": 0.62975,
+        "init_stance": 0.54503,
+        "init_stance_position": 0.63792,
+        "init_swing": 5.0592,
+        "speed_stance": 3.6923,
+        "speed_swing": 3.2043,
+        "inner_inhibit": -0.45334,
+        "st_st_con": 0.80108,
+        "st_sw_con": -0.85135,
+        "sw_st_con": -0.64631,
+        "sw_sw_con": 0.10515,
     }
 ]
 
 search_space = {
-    "init_stance": tune.uniform(0, 2),
+    "init_stance": tune.uniform(0.5, 1.5),
     "init_stance_position": tune.uniform(0, 1),
-    "init_swing": tune.uniform(4, 6),
-    "speed_stance": tune.uniform(3, 5),
-    "speed_swing": tune.uniform(2, 6),
-    "inner_inhibit": tune.uniform(-1, 1),
+    "init_swing": tune.uniform(4.5, 5.5),
+    "speed_stance": tune.uniform(3, 4),
+    "speed_swing": tune.uniform(2, 5),
+    "inner_inhibit": tune.uniform(-1, 0),
     "sw_sw_con": tune.uniform(-1, 1),
-    "st_sw_con": tune.uniform(-1, 1),
-    "sw_st_con": tune.uniform(-1, 1),
-    "st_st_con": tune.uniform(-1, 1),
+    "st_sw_con": tune.uniform(-1, 0),
+    "sw_st_con": tune.uniform(-1, 0),
+    "st_st_con": tune.uniform(0, 1),
 }
