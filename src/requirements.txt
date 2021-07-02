@@ -1,0 +1,6 @@
+ray[tune]
+sklearn
+nengo
+nengo-gui
+hyperopt
+matplotlib
