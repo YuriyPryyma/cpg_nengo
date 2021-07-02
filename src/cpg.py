@@ -2,14 +2,46 @@ import nengo
 import numpy as np
 from nengo.processes import Piecewise
 from nengo.dists import Uniform
+import tune_optimize_utils as utils
 
-radius = np.sqrt(2)
+"""
+State vector represent two variables in ranges [0, 1]
+We need to extend radius to contain point (1,1)
+"""
+radius = np.sqrt(1**2+1**2)
+"""
+Synapse controls the size of a filter
+In case of a big filter the system is highly stable, but
+slowly responding to changes
+"""
 tau = 0.01
 
 
-def create_CPG(*, params, state_neurons=400):
-
+def create_CPG(*, params, state_neurons=400, noise=0, **args):
+    """
+    Fuctions creates spiking CPG model using input parameters
+    
+    Parameters
+    ----------
+    params : dict
+        Includes dicionary with CPG model parameters 
+        describing model dynamics
+    state_neurons : int
+        Number of parameners to use for swing and stance 
+        state representation including integrator and speed control 
+    noise : float
+        Controls noise for integrator output for all 4 states
+        
+    Returns
+    -------
+    Nengo model
+    """
     def swing_feedback(state):
+        """
+            Function transforms differential equations for
+            swing state updates to a format acceptable for nengo
+            recurrent connection
+        """
         x, speed = state
         dX = params["init_swing"] + params["speed_swing"] * speed + \
             params["inner_inhibit"] * x
@@ -22,6 +54,11 @@ def create_CPG(*, params, state_neurons=400):
         return dX * tau + x
 
     def positive_signal(x):
+        """
+        Function implements inhibition for state neurons in case
+        state variable is bigger then 0
+        We use this function to switch active group 
+        """
         if x > 0:
             return [-100] * state_neurons
         else:
@@ -35,26 +72,43 @@ def create_CPG(*, params, state_neurons=400):
 
     model = nengo.Network(seed=42)
     with model:
+        # Becase we integrate from 0 to 1
+        # There is no point to train our connections on negative numbers
         eval_points_dist = Uniform(0, 1)
-
+        
+        # Additional check in case we want to add noise
+        if noise > 0:
+            noise_proces = nengo.processes.WhiteNoise(
+                dist=nengo.dists.Gaussian(0, noise), seed=1)
+        else:
+            noise_proces = None
+        
+        ## creating main state variables
         model.swing1 = nengo.Ensemble(state_neurons, 2, radius=radius,
                                       label="swing1",
+                                      noise=noise_proces,
                                       eval_points=eval_points_dist)
 
         model.stance1 = nengo.Ensemble(state_neurons, 2, radius=radius,
                                        label="stance1",
+                                       noise=noise_proces,
                                        eval_points=eval_points_dist)
 
         model.swing2 = nengo.Ensemble(state_neurons, 2, radius=radius,
                                       label="swing2",
+                                      noise=noise_proces,
                                       eval_points=eval_points_dist)
 
         model.stance2 = nengo.Ensemble(state_neurons, 2, radius=radius,
                                        label="stance2",
+                                       noise=noise_proces,
                                        eval_points=eval_points_dist)
-
+        
+        # Nengo automatically sample points
+        # In out case we want to control this process
         eval_points_sample = np.random.rand(10000, 2)
-
+        
+        # Setting recurrent connections
         nengo.Connection(model.swing1, model.swing1[0],
                          function=swing_feedback,
                          synapse=tau, eval_points=eval_points_sample)
@@ -138,31 +192,56 @@ def create_CPG(*, params, state_neurons=400):
 
         nengo.Connection(init_stance, model.stance2[0], synapse=tau)
 
+        if "time" in args:
+            time = args["time"]
+        else:
+            time = 95
+
         model.speed = nengo.Ensemble(state_neurons, 1, label="speed")
-        nengo.Connection(model.speed, model.speed, synapse=0.1)
-        nengo.Connection(thresh2, model.speed,
-                         transform=[0.47], synapse=0.1,
-                         eval_points=np.random.rand(10000, 1))
+        speed_set = nengo.Node(lambda t: t / time)
+        nengo.Connection(speed_set, model.speed)
 
         nengo.Connection(model.speed, model.swing1[1], synapse=tau)
         nengo.Connection(model.speed, model.stance1[1], synapse=tau)
         nengo.Connection(model.speed, model.swing2[1], synapse=tau)
         nengo.Connection(model.speed, model.stance2[1], synapse=tau)
+        
+        if "disable" in args:
+            def funk(t):
+
+                np.random.seed(0)
+
+                disable_count = int(count * (t/95))
+
+                disable_i = np.random.choice(state_neurons, 
+                    disable_count, replace=False)
+                    
+                neuron_signal = np.zeros(state_neurons)
+                            
+                neuron_signal[disable_i] = -30
+                    
+                return neuron_signal
+                
+            if_damage = nengo.Node(funk, label="dmg")
+
+            nengo.Connection(if_damage, 
+                    model.swing1.neurons,
+                    synapse=tau)
+
+            nengo.Connection(if_damage, 
+                    model.stance1.neurons,
+                    synapse=tau)
+
+            nengo.Connection(if_damage, 
+                    model.swing2.neurons,
+                    synapse=tau)
+
+            nengo.Connection(if_damage, 
+                    model.stance2.neurons,
+                    synapse=tau)
+        
 
     return model
 
 
-params = {
-    "init_swing": 2.7136,
-    "init_stance": 1,
-    "speed_swing": 1.1668,
-    "speed_stance": 1.6596,
-    "inner_inhibit": -0.009,
-    "init_stance_position": 0,
-    "sw_sw_con": 0.0921,
-    "st_sw_con": -0.0636,
-    "sw_st_con": -0.0934,
-    "st_st_con": 0.01246,
-}
-
-model = create_CPG(params=params, state_neurons=2000)
+model = create_CPG(params=utils.best_params[0], state_neurons=2000)
