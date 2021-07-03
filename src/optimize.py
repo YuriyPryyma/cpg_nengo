@@ -1,12 +1,12 @@
 import numpy as np
 from sklearn.metrics import mean_squared_error
 import nengo
-import nengo_ocl
 from cpg import create_CPG
 
 tau = 0.01
 
-# Halbert sma minmax(Tc)
+# Halbertsma minmax(Tc)
+# Minimum and maximum ranges for cat cycle duration
 MIN_PHASE, MAX_PHASE = (.57, 1.91)
 
 
@@ -22,6 +22,11 @@ def findall(p, s):
 
 
 def calc_swing_stance(state_probe):
+    """
+    Fuction detects starts and ends for swing and stance phases
+    using findall function
+    giving state changes history
+    """
     s1_state_changes = state_probe < 0
 
     state_str = "".join([str(int(s)) for s in s1_state_changes])
@@ -30,7 +35,7 @@ def calc_swing_stance(state_probe):
     swing_stance = findall("10", state_str)
 
     swing_cycles = [(left, right) for left, right
-                    in zip(stance_swing, swing_stance)][1:]
+                    in zip(stance_swing, swing_stance)]
     stance_cycles = [(left, right) for left, right
                      in zip(swing_stance, stance_swing[1:])]
 
@@ -43,14 +48,27 @@ def calc_swing_stance(state_probe):
 
 
 def cycle_to_swing(cycle):
+    """
+    Calculates expected swing phase duration given cycle duration
+    as present in Halbertsma cats dataset
+    """
     return 0.168 + 0.0938 * cycle
 
 
 def cycle_to_stance(cycle):
+    """
+    Calculates expected stance phase duration given cycle duration
+    as present in Halbertsma cats dataset
+    """
     return -0.168 + 0.9062 * cycle
 
 
 def single_limb_error(swing_cycles, stance_cycles):
+    """
+    Function computers phase duration loss for one limb
+    by calculating root mean square error of expected phase durations and simulated phases
+    Our goal to reproduce the same linear relationship present in Halbertsma dataset
+    """
 
     swing_cycles_duration = [(right - left) / 1000
                              for left, right in swing_cycles]
@@ -74,7 +92,9 @@ def single_limb_error(swing_cycles, stance_cycles):
     return error_phase, error_speed
 
 def symmetry_error(swing_cycles, stance_cycles):
-
+    """
+    Function checks if swing phase of a limb is in the middle of stance phase in other limb
+    """
     pre_swing_part = [abs(swing[0] - stance[0]) / 1000
                       for swing, stance in zip(swing_cycles, stance_cycles)]
 
@@ -86,20 +106,33 @@ def symmetry_error(swing_cycles, stance_cycles):
     return error
 
 
-def simulation(params, time=95, progress_bar=False):
-    model = create_CPG(params=params, state_neurons=5000)
+def simulation(*args, **kwagrs):
+    """
+    Function creates CPG model given parameters and run simulation
+    Returns dictionary for simulation history
+    """
+    model = create_CPG(**kwagrs)
+
+    if "progress_bar" in kwagrs:
+        progress_bar = kwagrs["progress_bar"]
+    else:
+        progress_bar = False
 
     with model:
         s1_probe = nengo.Probe(model.s1, synapse=tau)
         s2_probe = nengo.Probe(model.s2, synapse=tau)
         speed_probe = nengo.Probe(model.speed, synapse=tau)
-
         swing1_probe = nengo.Probe(model.swing1, synapse=tau)
         stance1_probe = nengo.Probe(model.stance1, synapse=tau)
         swing2_probe = nengo.Probe(model.swing2, synapse=tau)
         stance2_probe = nengo.Probe(model.stance2, synapse=tau)
 
-    with nengo_ocl.Simulator(model, progress_bar=progress_bar) as sim:
+    if "time" in kwagrs:
+        time = kwagrs["time"]
+    else:
+        time = 95
+
+    with nengo.Simulator(model, progress_bar=progress_bar) as sim:
         sim.run(time)
 
     return {
@@ -113,8 +146,11 @@ def simulation(params, time=95, progress_bar=False):
     }
 
 
-def simulation_error(params, time=95, progress_bar=False):
-    history = simulation(params, time, progress_bar)
+def simulation_error(*args, **kwagrs):
+    """
+    Function runs simulation and combines all losses into final value
+    """
+    history = simulation(**kwagrs)
 
     s1_state = history["s1_state"]
     s2_state = history["s2_state"]
@@ -152,7 +188,14 @@ def simulation_error(params, time=95, progress_bar=False):
         error_symmetricity1 = 10
         error_symmetricity2 = 10
 
-    error = 1.2 * error_phase + 0.4 * error_speed + \
+    error = 1.2 * error_phase + 0.5 * error_speed + \
         0.2 * error_symmetricity1 + error_symmetricity2
 
-    return error, error_phase, error_speed, error_symmetricity1, error_symmetricity2
+    return {
+        "error": error,
+        "error_phase": error_phase,
+        "error_speed": error_speed,
+        "error_symmetricity1": error_symmetricity1,
+        "error_symmetricity2": error_symmetricity2,
+        "history": history,
+    }
