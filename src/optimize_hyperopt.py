@@ -6,6 +6,7 @@ import tune_optimize_utils as utils
 
 
 if __name__ == "__main__":
+    # in case of OpenGL runtime
     os.environ["PYOPENCL_CTX"] = '0'
     ray_simulation_error = utils.ray_wrapper(simulation_error)
 
