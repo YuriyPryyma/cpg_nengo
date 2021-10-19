@@ -36,16 +36,27 @@ if __name__ == "__main__":
     swing2 = s2_state < 0
     stance2 = s2_state > 0
 
-    fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(15, 10))
-    axes[0].plot(times, history["swing1_state"][start:end], color="r")
-    axes[0].axvline(x=left_sw_cycles[1][0], color="b")
-    axes[0].axvline(x=left_sw_cycles[1][1], color="b")
-    axes[0].set_ylim([-0.5, 1.5])
-    axes[1].plot(times, history["stance2_state"][start:end], color="r")
-    axes[1].axvline(x=right_st_cycles[1][0], color="b")
-    axes[1].axvline(x=right_st_cycles[1][1], color="b")
-    axes[1].set_ylim([-0.5, 1.5])
+    print(len(left_sw_cycles), len(right_st_cycles))
 
+    print(optimize.symmetry_error(left_sw_cycles[1:], right_st_cycles))
+
+
+    print(len(right_sw_cycles), len(left_st_cycles))
+
+    print(optimize.symmetry_error(right_sw_cycles, left_st_cycles[:-1]))
+
+
+    fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(15, 10))
+    axes[0].plot(times, history["stance1_state"][start:end], color="b")
+    axes[0].plot(times, history["swing1_state"][start:end], color="r")
+    axes[0].axvline(x=left_st_cycles[0][0], color="black")
+    axes[0].axvline(x=left_st_cycles[0][1], color="black")
+    axes[0].set_ylim([-0.5, 1.5])
+    axes[1].plot(times, history["swing2_state"][start:end], color="r")
+    axes[1].plot(times, history["stance2_state"][start:end], color="b")
+    axes[1].axvline(x=right_sw_cycles[0][0], color="black")
+    axes[1].axvline(x=right_sw_cycles[0][1], color="black")
+    axes[1].set_ylim([-0.5, 1.5])
 
     plt.show()
 

@@ -20,16 +20,16 @@ def exp_name(Alg):
 
 best_params = [
     {
-        "init_stance": 0.54503,
-        "init_stance_position": 0.63792,
-        "init_swing": 5.0592,
-        "speed_stance": 3.6923,
-        "speed_swing": 3.2043,
-        "inner_inhibit": -0.45334,
-        "st_st_con": 0.80108,
-        "st_sw_con": -0.85135,
-        "sw_st_con": -0.64631,
-        "sw_sw_con": 0.10515,
+        "init_stance": 0.68159,
+        "init_stance_position": 0.76815,
+        "init_swing": 5.0656,
+        "speed_stance": 3.5113,
+        "speed_swing": 3.3579,
+        "inner_inhibit": -0.31102,
+        "st_st_con": 0.38125,
+        "st_sw_con": -0.66464,
+        "sw_st_con": -0.57982,
+        "sw_sw_con": -0.68891,
     }
 ]
 

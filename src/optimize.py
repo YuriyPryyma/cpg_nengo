@@ -29,15 +29,22 @@ def calc_swing_stance(state_probe):
     stance_swing = findall("01", state_str)
     swing_stance = findall("10", state_str)
 
-    swing_cycles = [(left, right) for left, right
-                    in zip(stance_swing, swing_stance)][1:]
-    stance_cycles = [(left, right) for left, right
-                     in zip(swing_stance, stance_swing[1:])]
+    swing_cycles = []
+    stance_cycles = []
 
-    full_cycles = min(len(swing_cycles), len(stance_cycles))
+    for start_swing in stance_swing:   
+        start_stance_i = np.searchsorted(swing_stance, start_swing)
+        if start_stance_i >= len(swing_stance):
+            break
+        start_stance = swing_stance[start_stance_i]
 
-    swing_cycles = swing_cycles[:full_cycles]
-    stance_cycles = stance_cycles[:full_cycles]
+        end_stance_i = np.searchsorted(stance_swing, start_stance)
+        if end_stance_i >= len(stance_swing):
+            break
+        end_stance = stance_swing[end_stance_i]
+
+        swing_cycles.append((start_swing, start_stance))
+        stance_cycles.append((start_stance, end_stance))
 
     return swing_cycles, stance_cycles
 
@@ -63,9 +70,9 @@ def single_limb_error(swing_cycles, stance_cycles):
     swing_expected = cycle_to_swing(combined_cycles)
     stance_expected = cycle_to_stance(combined_cycles)
     err_swing = mean_squared_error(swing_expected,
-                                   swing_cycles_duration, squared=False)
+                                   swing_cycles_duration, squared=True)
     err_stance = mean_squared_error(stance_expected,
-                                    stance_cycles_duration, squared=False)
+                                    stance_cycles_duration, squared=True)
     error_phase = err_swing + err_stance
 
     error_speed = abs(MIN_PHASE - min(combined_cycles)) + \
@@ -87,7 +94,7 @@ def symmetry_error(swing_cycles, stance_cycles):
 
 
 def simulation(params, time=95, progress_bar=False):
-    model = create_CPG(params=params, state_neurons=5000)
+    model = create_CPG(params=params, state_neurons=2000)
 
     with model:
         s1_probe = nengo.Probe(model.s1, synapse=tau)
@@ -99,7 +106,7 @@ def simulation(params, time=95, progress_bar=False):
         swing2_probe = nengo.Probe(model.swing2, synapse=tau)
         stance2_probe = nengo.Probe(model.stance2, synapse=tau)
 
-    with nengo_ocl.Simulator(model, progress_bar=progress_bar) as sim:
+    with nengo.Simulator(model, progress_bar=progress_bar) as sim:
         sim.run(time)
 
     return {
@@ -129,8 +136,8 @@ def simulation_error(params, time=95, progress_bar=False):
         error_phase = error_left_phase + error_right_phase
         error_speed = error_left_speed + error_right_speed
 
-        error_symmetricity_l_r = symmetry_error(left_sw_cycles, right_st_cycles)
-        error_symmetricity_r_l = symmetry_error(right_sw_cycles, left_st_cycles)
+        error_symmetricity_l_r = symmetry_error(left_sw_cycles[1:], right_st_cycles)
+        error_symmetricity_r_l = symmetry_error(right_sw_cycles, left_st_cycles[:-1])
 
         error_symmetricity1 = error_symmetricity_l_r + error_symmetricity_r_l
 
