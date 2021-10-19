@@ -159,7 +159,7 @@ def simulation_error(params, time=95, progress_bar=False):
         error_symmetricity1 = 10
         error_symmetricity2 = 10
 
-    error = 1.2 * error_phase + 0.4 * error_speed + \
-        0.2 * error_symmetricity1 + error_symmetricity2
+    error = 1.5 * error_phase + 1.5 * error_speed + \
+        error_symmetricity1 + error_symmetricity2
 
     return error, error_phase, error_speed, error_symmetricity1, error_symmetricity2
