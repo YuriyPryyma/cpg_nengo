@@ -70,9 +70,9 @@ def single_limb_error(swing_cycles, stance_cycles):
     swing_expected = cycle_to_swing(combined_cycles)
     stance_expected = cycle_to_stance(combined_cycles)
     err_swing = mean_squared_error(swing_expected,
-                                   swing_cycles_duration, squared=True)
+                                   swing_cycles_duration, squared=False)
     err_stance = mean_squared_error(stance_expected,
-                                    stance_cycles_duration, squared=True)
+                                    stance_cycles_duration, squared=False)
     error_phase = err_swing + err_stance
 
     error_speed = abs(MIN_PHASE - min(combined_cycles)) + \
@@ -94,7 +94,7 @@ def symmetry_error(swing_cycles, stance_cycles):
 
 
 def simulation(params, time=95, progress_bar=False):
-    model = create_CPG(params=params, state_neurons=2000)
+    model = create_CPG(params=params, state_neurons=5000)
 
     with model:
         s1_probe = nengo.Probe(model.s1, synapse=tau)
@@ -159,7 +159,7 @@ def simulation_error(params, time=95, progress_bar=False):
         error_symmetricity1 = 10
         error_symmetricity2 = 10
 
-    error = 1.5 * error_phase + 1.5 * error_speed + \
+    error = 2 * error_phase + error_speed + \
         error_symmetricity1 + error_symmetricity2
 
     return error, error_phase, error_speed, error_symmetricity1, error_symmetricity2
