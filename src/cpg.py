@@ -7,7 +7,7 @@ radius = np.sqrt(2)
 tau = 0.01
 
 
-def create_CPG(*, params, state_neurons=400):
+def create_CPG(*, params, state_neurons=400, **args):
 
     def swing_feedback(state):
         x, speed = state
@@ -148,6 +148,46 @@ def create_CPG(*, params, state_neurons=400):
         nengo.Connection(model.speed, model.stance1[1], synapse=tau)
         nengo.Connection(model.speed, model.swing2[1], synapse=tau)
         nengo.Connection(model.speed, model.stance2[1], synapse=tau)
+
+
+        if "disable" in args:
+            count = args["disable"]
+
+            print("disable", count)
+            print("state_neurons", state_neurons)
+
+            def funk(t):
+
+                np.random.seed(0)
+
+                disable_count = int(count * (t/95))
+
+                disable_i = np.random.choice(state_neurons, 
+                    disable_count, replace=False)
+                    
+                neuron_signal = np.zeros(state_neurons)
+                            
+                neuron_signal[disable_i] = -30
+                    
+                return neuron_signal
+                
+            if_damage = nengo.Node(funk, label="dmg")
+
+            nengo.Connection(if_damage, 
+                    model.swing1.neurons,
+                    synapse=tau)
+
+            nengo.Connection(if_damage, 
+                    model.stance1.neurons,
+                    synapse=tau)
+
+            nengo.Connection(if_damage, 
+                    model.swing2.neurons,
+                    synapse=tau)
+
+            nengo.Connection(if_damage, 
+                    model.stance2.neurons,
+                    synapse=tau)
 
     return model
 
