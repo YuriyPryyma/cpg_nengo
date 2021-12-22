@@ -5,6 +5,7 @@ sys.path.insert(0, "../src")
 import numpy as np
 import json
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import optimize
 import tune_optimize_utils as utils
 from sklearn.metrics import r2_score
@@ -22,6 +23,9 @@ if __name__ == "__main__":
 
     plt.rcParams['font.size'] = 18
     plt.rcParams['axes.linewidth'] = 2
+    mpl.rcParams['pdf.fonttype'] = 42
+    mpl.rcParams['ps.fonttype'] = 42
+
 
     # history = optimize.simulation(params=utils.best_params[0], 
     #                               progress_bar=True, state_neurons=2000)
@@ -38,7 +42,7 @@ if __name__ == "__main__":
 
     ax = plt.gca()
 
-    fig.suptitle("Relationship of input CPG speed and locomotion velocity", fontsize=24)
+    fig.suptitle("B", fontsize=24)
 
     state = np.array(history[f"s1_state"])
     swing_cycles, stance_cycles = optimize.calc_swing_stance(state)
@@ -90,7 +94,7 @@ if __name__ == "__main__":
     # plt.show()
 
     f_name = f"power_relationship"
-    plt.savefig(f_name+".pdf", format="pdf", dpi=200, bbox_inches="tight")
+    plt.savefig(f_name+".pdf", format="pdf", dpi=200, bbox_inches="tight", transparent=True)
     plt.savefig(f_name+".png", dpi=200, bbox_inches="tight")
 
 

@@ -24,7 +24,9 @@ if __name__ == "__main__":
     history = json.load(open("history.json"))
 
     plt.rcParams['font.size'] = 18
-    plt.rcParams['axes.linewidth'] = 2    
+    plt.rcParams['axes.linewidth'] = 2
+    mpl.rcParams['pdf.fonttype'] = 42
+    mpl.rcParams['ps.fonttype'] = 42
 
     for i, j in [(0, 5), (40, 45), (90, 95)]:
 
@@ -54,10 +56,8 @@ if __name__ == "__main__":
 
         fig.tight_layout()
 
-        #fig.savefig(, dpi=300, transparent=False, bbox_inches='tight')
-
         f_name = f"Model simulation from {i} to {j} seconds"
-        plt.savefig(f_name+".pdf", format="pdf", dpi=200, bbox_inches="tight")
+        plt.savefig(f_name+".pdf", format="pdf", dpi=200, bbox_inches="tight", transparent=True)
         plt.savefig(f_name+".png", dpi=200, bbox_inches="tight")
 
         plt.close()

@@ -5,6 +5,7 @@ sys.path.insert(0, "../src")
 import numpy as np
 import json
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import optimize
 import tune_optimize_utils as utils
 from sklearn.metrics import r2_score
@@ -30,6 +31,9 @@ if __name__ == "__main__":
 
     plt.rcParams['font.size'] = 18
     plt.rcParams['axes.linewidth'] = 2
+    mpl.rcParams['pdf.fonttype'] = 42
+    mpl.rcParams['ps.fonttype'] = 42
+
 
     for leg in [1, 2]:
 
@@ -58,7 +62,7 @@ if __name__ == "__main__":
         stance_r2 = r2_score(true_stance_duration, stance_cycles_duration)
 
 
-        fig.suptitle(f"Model swing/stance error", fontsize=24)
+        fig.suptitle(f"A", fontsize=24)
 
         props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
 
@@ -95,7 +99,7 @@ if __name__ == "__main__":
         f_name = f"phase_durations_error"
 
         # plt.show()
-        plt.savefig(f_name+".pdf", format="pdf", dpi=200, bbox_inches="tight")
+        plt.savefig(f_name+".pdf", format="pdf", dpi=200, bbox_inches="tight", transparent=True)
         plt.savefig(f_name+".png", dpi=200, bbox_inches="tight")
 
         break
