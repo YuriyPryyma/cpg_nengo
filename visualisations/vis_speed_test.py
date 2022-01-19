@@ -1,41 +1,22 @@
-import sys
-sys.path.insert(0, "../src")
-
-
 import numpy as np
 import json
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-import optimize
-import tune_optimize_utils as utils
 from sklearn.metrics import r2_score
-from sklearn.linear_model import LinearRegression
-# import tkinter
-# import matplotlib
 from scipy.optimize import curve_fit
 
-# matplotlib.use('TkAgg')
-
-tau = 0.01
-
 if __name__ == "__main__":
-    # plt.style.use('seaborn-pastel')
+    history = json.load(open("history.json"))
+    s1_state_cycles = json.load(open("s1_state_cycles.json"))
+
+    swing_cycles = s1_state_cycles["swing_cycles"]
+    stance_cycles = s1_state_cycles["stance_cycles"]
+
 
     plt.rcParams['font.size'] = 18
     plt.rcParams['axes.linewidth'] = 2
     mpl.rcParams['pdf.fonttype'] = 42
     mpl.rcParams['ps.fonttype'] = 42
-
-    # history = optimize.simulation(params=utils.best_params[0], 
-    #                               progress_bar=True, state_neurons=2000)
-
-    # for k in history.keys():
-    #     history[k] = history[k][:, 0].tolist()
-
-    # json.dump(history, open("history.json", 'w'))
-
-    history = json.load(open("history.json"))
-
 
     fig = plt.figure(figsize=(10, 10))
 
@@ -43,9 +24,7 @@ if __name__ == "__main__":
 
     fig.suptitle("C", fontsize=24)
 
-    state = np.array(history[f"s1_state"])
-    swing_cycles, stance_cycles = optimize.calc_swing_stance(state)
-
+  
     swing_cycles_duration = [(right - left) / 1000
                          for left, right in swing_cycles][1:]
 
@@ -69,7 +48,7 @@ if __name__ == "__main__":
     # Tc = 0.5445*V^(−0.592)
     V_predicted = (combined_cycles/0.5445)**(-1/0.592)
 
-    ax.plot(speed_points, V_predicted, "black", linestyle='dashed', linewidth=3, label='Speed-Velocity relationships')
+    ax.plot(speed_points, V_predicted, "black", linewidth=3, label='Speed-Velocity relationships')
 
     def f(x, A, B):
       return A*x + B
@@ -91,7 +70,7 @@ if __name__ == "__main__":
 
     print("stance_r2 ", stance_r2)
 
-    ax.plot(speed_points, fit_line, "black", label='best-fit line')
+    ax.plot(speed_points, fit_line, color="#F8550D", label='best-fit line')
 
     ax.set_xlabel('CPG input', labelpad=10, fontsize=20)
     ax.set_xticks([0, 0.5, 1.0, ])

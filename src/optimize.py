@@ -106,7 +106,7 @@ def simulation(params, time=95, progress_bar=False, state_neurons=5000, **args):
         swing2_probe = nengo.Probe(model.swing2, synapse=tau)
         stance2_probe = nengo.Probe(model.stance2, synapse=tau)
 
-    with nengo.Simulator(model, progress_bar=progress_bar) as sim:
+    with nengo_ocl.Simulator(model, progress_bar=progress_bar) as sim:
         sim.run(time)
 
     return {
@@ -163,3 +163,48 @@ def simulation_error(params, time=95, progress_bar=False, state_neurons=2000, **
         error_symmetricity1 + error_symmetricity2
 
     return history, error, error_phase, error_speed, error_symmetricity1, error_symmetricity2
+
+
+
+def only_error(history, time=95):
+    eval_slice = int((time/95)*len(history["s1_state"]))
+    s1_state = history["s1_state"][:eval_slice]
+    s2_state = history["s2_state"][:eval_slice]
+
+    try:
+        left_sw_cycles, left_st_cycles = calc_swing_stance(s1_state)
+        right_sw_cycles, right_st_cycles = calc_swing_stance(s2_state)
+
+        error_left_phase, error_left_speed = single_limb_error(left_sw_cycles, left_st_cycles)
+        error_right_phase, error_right_speed = single_limb_error(right_sw_cycles, right_st_cycles)
+
+        error_phase = error_left_phase + error_right_phase
+        error_speed = 0
+
+        error_symmetricity_l_r = symmetry_error(left_sw_cycles[1:], right_st_cycles)
+        error_symmetricity_r_l = symmetry_error(right_sw_cycles, left_st_cycles[:-1])
+
+        error_symmetricity1 = error_symmetricity_l_r + error_symmetricity_r_l
+
+        swing1 = s1_state < 0
+        stance1 = s1_state > 0
+
+        swing2 = s2_state < 0
+        stance2 = s2_state > 0
+
+        sw1_in_st2 = np.sum(swing1 & stance2) / np.sum(swing1)
+        sw2_in_st1 = np.sum(swing2 & stance1) / np.sum(swing2)
+
+        error_symmetricity2 = (1 - sw1_in_st2) + (1 - sw2_in_st1)
+
+    except Exception as e:
+        print("error calc", e)
+        error_phase = 10
+        error_speed = 10
+        error_symmetricity1 = 10
+        error_symmetricity2 = 10
+
+    error = 2 * error_phase + error_speed + \
+        error_symmetricity1 + error_symmetricity2
+
+    return error, error_phase, error_speed, error_symmetricity1, error_symmetricity2

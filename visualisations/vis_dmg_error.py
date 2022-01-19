@@ -53,10 +53,7 @@ if __name__ == "__main__":
 
     # json.dump(errors_dict, open("errors_dict.json", 'w'))
 
-    errors_dict1 = json.load(open("errors_dict0_10.json"))
-    errors_dict2 = json.load(open("errors_dict10_20.json"))
-
-    errors_dict = {**errors_dict1, **errors_dict2}
+    errors_dict = json.load(open("errors_dict.json"))
 
     plt.style.use('seaborn-pastel')
     plt.rcParams['font.size'] = 18

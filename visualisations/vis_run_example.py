@@ -1,25 +1,11 @@
-import sys
-sys.path.insert(0, "../src")
-
 import numpy as np
 import json
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-import optimize
-import tune_optimize_utils as utils
-from pylab import cm
-import matplotlib.font_manager as fm
 
 tau = 0.01
 
 if __name__ == "__main__":
-    plt.style.use('seaborn-pastel')
-
-    # history = optimize.simulation(params=utils.best_params[0], progress_bar=True, state_neurons=2000)
-    # for k in history.keys():
-        # history[k] = history[k][:, 0].tolist()
-
-    # json.dump(history, open("history.json", 'w'))
 
     history = json.load(open("history.json"))
 
