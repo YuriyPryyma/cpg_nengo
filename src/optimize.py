@@ -93,8 +93,8 @@ def symmetry_error(swing_cycles, stance_cycles):
     return error
 
 
-def simulation(params, time=95, progress_bar=False, state_neurons=5000, **args):
-    model = create_CPG(params=params, state_neurons=state_neurons, **args)
+def simulation(params, time=95, progress_bar=False, state_neurons=300, **args):
+    model = create_CPG(params=params, state_neurons=state_neurons, time=time, **args)
 
     with model:
         s1_probe = nengo.Probe(model.s1, synapse=tau)
@@ -106,7 +106,7 @@ def simulation(params, time=95, progress_bar=False, state_neurons=5000, **args):
         swing2_probe = nengo.Probe(model.swing2, synapse=tau)
         stance2_probe = nengo.Probe(model.stance2, synapse=tau)
 
-    with nengo_ocl.Simulator(model, progress_bar=progress_bar) as sim:
+    with nengo.Simulator(model, progress_bar=progress_bar, optimize=True) as sim:
         sim.run(time)
 
     return {
@@ -120,7 +120,7 @@ def simulation(params, time=95, progress_bar=False, state_neurons=5000, **args):
     }
 
 
-def simulation_error(params, time=95, progress_bar=False, state_neurons=2000, **args):
+def simulation_error(params, time=95, progress_bar=False, state_neurons=300, **args):
     history = simulation(params, time, progress_bar, state_neurons=state_neurons, **args)
 
     s1_state = history["s1_state"]
