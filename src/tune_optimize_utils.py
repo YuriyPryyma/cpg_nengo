@@ -4,7 +4,7 @@ from ray import tune
 
 def ray_wrapper(func):
     def inner(params):
-        error, error_phase, error_speed, error_sym1, error_sym2 = func(params)
+        history, error, error_phase, error_speed, error_sym1, error_sym2 = func(params)
         tune.report(error=error, error_phase=error_phase,
                     error_speed=error_speed,
                     error_symmetricity1=error_sym1,

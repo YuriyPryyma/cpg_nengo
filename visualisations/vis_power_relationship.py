@@ -91,10 +91,10 @@ if __name__ == "__main__":
 
     fig.tight_layout()
 
-    # plt.show()
+    plt.show()
 
-    f_name = f"power_relationship"
-    plt.savefig(f_name+".pdf", format="pdf", dpi=200, bbox_inches="tight", transparent=True)
-    plt.savefig(f_name+".png", dpi=200, bbox_inches="tight")
+    # f_name = f"power_relationship"
+    # plt.savefig(f_name+".pdf", format="pdf", dpi=200, bbox_inches="tight", transparent=True)
+    # plt.savefig(f_name+".png", dpi=200, bbox_inches="tight")
 
 

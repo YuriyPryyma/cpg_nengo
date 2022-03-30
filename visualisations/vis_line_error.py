@@ -98,8 +98,8 @@ if __name__ == "__main__":
 
         f_name = f"phase_durations_error"
 
-        # plt.show()
-        plt.savefig(f_name+".pdf", format="pdf", dpi=200, bbox_inches="tight", transparent=True)
-        plt.savefig(f_name+".png", dpi=200, bbox_inches="tight")
+        plt.show()
+        # plt.savefig(f_name+".pdf", format="pdf", dpi=200, bbox_inches="tight", transparent=True)
+        # plt.savefig(f_name+".png", dpi=200, bbox_inches="tight")
 
         break

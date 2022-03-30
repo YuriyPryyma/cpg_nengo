@@ -173,17 +173,11 @@ def create_CPG(*, params, state_neurons=400, **args):
 
         def disable_f(disable_count):
 
-            np.random.seed(0)
-            
-            disable_count = int(disable_count)
-
-            disable_i = np.random.choice(state_neurons, 
-                disable_count, replace=False)
-                
             neuron_signal = np.zeros(state_neurons)
-                        
-            neuron_signal[disable_i] = -30
-                
+            
+            for i in range(int(disable_count)):
+                neuron_signal[i] = -30
+
             return neuron_signal
                 
         damage_count = nengo.Node([0], label="dmg")

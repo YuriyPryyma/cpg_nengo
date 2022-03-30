@@ -42,8 +42,10 @@ if __name__ == "__main__":
 
         fig.tight_layout()
 
-        f_name = f"Model simulation from {i} to {j} seconds"
-        plt.savefig(f_name+".pdf", format="pdf", dpi=200, bbox_inches="tight", transparent=True)
-        plt.savefig(f_name+".png", dpi=200, bbox_inches="tight")
+        plt.show()
+        
+        # f_name = f"Model simulation from {i} to {j} seconds"
+        # plt.savefig(f_name+".pdf", format="pdf", dpi=200, bbox_inches="tight", transparent=True)
+        # plt.savefig(f_name+".png", dpi=200, bbox_inches="tight")
 
-        plt.close()
+        # plt.close()

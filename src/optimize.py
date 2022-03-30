@@ -93,7 +93,7 @@ def symmetry_error(swing_cycles, stance_cycles):
     return error
 
 
-def simulation(params, time=95, progress_bar=False, state_neurons=300, **args):
+def simulation(params, time=80, progress_bar=False, state_neurons=300, **args):
     model = create_CPG(params=params, state_neurons=state_neurons, time=time, **args)
 
     with model:
@@ -120,7 +120,7 @@ def simulation(params, time=95, progress_bar=False, state_neurons=300, **args):
     }
 
 
-def simulation_error(params, time=95, progress_bar=False, state_neurons=300, **args):
+def simulation_error(params, time=80, progress_bar=False, state_neurons=300, **args):
     history = simulation(params, time, progress_bar, state_neurons=state_neurons, **args)
 
     s1_state = history["s1_state"]
