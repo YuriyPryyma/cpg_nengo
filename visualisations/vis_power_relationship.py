@@ -35,7 +35,7 @@ if __name__ == "__main__":
 
     # json.dump(history, open("history.json", 'w'))
 
-    history = json.load(open("history.json"))
+    history = json.load(open("history_new.json"))
 
 
     fig = plt.figure(figsize=(10, 10))

@@ -13,19 +13,18 @@ from sklearn.metrics import r2_score
 tau = 0.01
 
 if __name__ == "__main__":
-    # res = optimize.simulation_error(params=utils.best_params[0], 
-    #                               progress_bar=True)
+    history, error, error_phase, _, _, _ = optimize.simulation_error(params=utils.best_params[0], 
+                                  progress_bar=True)
 
-    # print(res[1:])
+    print("error ", error)
+    print("error_phase ", error_phase)
 
-    # history = res[0]
+    for k in history.keys():
+        history[k] = history[k][:, 0].tolist()
 
-    # for k in history.keys():
-    #     history[k] = history[k][:, 0].tolist()
+    json.dump(history, open("history_new.json", 'w'))
 
-    # json.dump(history, open("history.json", 'w'))
-
-    history = json.load(open("history.json"))
+    # history = json.load(open("history.json"))
 
     plt.style.use('seaborn-pastel')
 

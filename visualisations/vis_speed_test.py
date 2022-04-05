@@ -5,12 +5,14 @@ import matplotlib as mpl
 from sklearn.metrics import r2_score
 from scipy.optimize import curve_fit
 
-if __name__ == "__main__":
-    history = json.load(open("history.json"))
-    s1_state_cycles = json.load(open("s1_state_cycles.json"))
+import sys
+sys.path.append('../src')
+from optimize import calc_swing_stance
 
-    swing_cycles = s1_state_cycles["swing_cycles"]
-    stance_cycles = s1_state_cycles["stance_cycles"]
+if __name__ == "__main__":
+    history = json.load(open("history_new.json"))
+
+    swing_cycles, stance_cycles = calc_swing_stance(np.array(history["s2_state"]))
 
 
     plt.rcParams['font.size'] = 18
