@@ -1,3 +1,5 @@
+from functools import partial
+
 import nengo
 import numpy as np
 from nengo.processes import Piecewise
@@ -142,7 +144,6 @@ def create_CPG(*, params, time, state_neurons=400, **args):
         nengo.Connection(init_stance, model.stance2[0], synapse=tau)
 
         model.speed = nengo.Node(lambda t: t/time, label="speed")
-        
         nengo.Connection(model.speed, model.swing1,
                              function=lambda speed:
                              tau * speed * params["speed_swing"],
@@ -162,6 +163,34 @@ def create_CPG(*, params, time, state_neurons=400, **args):
                              function=lambda speed:
                              tau * speed * params["speed_stance"],
                              synapse=tau)
+
+
+        if "dmg_f" in args:
+            dmg_f = partial(args["dmg_f"],
+                state_neurons=state_neurons,
+                time=time)
+
+            sim_time = nengo.Node(lambda t: t, label="sim_time")
+
+            nengo.Connection(sim_time,
+                    model.swing1.neurons,
+                    function=partial(dmg_f, phase="swing1"),
+                    synapse=None)
+
+            nengo.Connection(sim_time,
+                    model.stance1.neurons,
+                    function=partial(dmg_f, phase="stance1"),
+                    synapse=None)
+
+            nengo.Connection(sim_time,
+                    model.swing2.neurons,
+                    function=partial(dmg_f, phase="swing2"),
+                    synapse=None)
+
+            nengo.Connection(sim_time,
+                    model.stance2.neurons,
+                    function=partial(dmg_f, phase="stance2"),
+                    synapse=None)
 
     return model
 

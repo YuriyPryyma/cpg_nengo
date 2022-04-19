@@ -164,13 +164,6 @@ def create_CPG(*, params, state_neurons=400, **args):
                              tau * speed * params["speed_stance"],
                              synapse=tau)
 
-        # nengo.Connection(model.speed, model.swing1[1], synapse=tau)
-        # nengo.Connection(model.speed, model.stance1[1], synapse=tau)
-        # nengo.Connection(model.speed, model.swing2[1], synapse=tau)
-        # nengo.Connection(model.speed, model.stance2[1], synapse=tau)
-
-
-
         def disable_f(disable_count):
 
             neuron_signal = np.zeros(state_neurons)

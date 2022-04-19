@@ -1,20 +1,20 @@
 import numpy as np
 import json
+import os
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 
-tau = 0.01
 
 if __name__ == "__main__":
 
-    history = json.load(open("history.json"))
+    history = json.load(open("experiment_history.json"))
 
     plt.rcParams['font.size'] = 18
     plt.rcParams['axes.linewidth'] = 2
     mpl.rcParams['pdf.fonttype'] = 42
     mpl.rcParams['ps.fonttype'] = 42
 
-    for i, j in [(0, 5), (40, 45), (90, 95)]:
+    for i, j in [(0, 5), (40, 45), (75, 80)]:
 
         start = i * 1000
         end = j * 1000
@@ -43,9 +43,8 @@ if __name__ == "__main__":
         fig.tight_layout()
 
         plt.show()
-        
-        # f_name = f"Model simulation from {i} to {j} seconds"
-        # plt.savefig(f_name+".pdf", format="pdf", dpi=200, bbox_inches="tight", transparent=True)
-        # plt.savefig(f_name+".png", dpi=200, bbox_inches="tight")
-
-        # plt.close()
+        os.makedirs("./images", exist_ok=True)
+        f_name = f"./images/Model simulation from {i} to {j} seconds"
+        plt.savefig(f_name + ".pdf", format="pdf", dpi=200, bbox_inches="tight", transparent=True)
+        plt.savefig(f_name + ".png", dpi=200, bbox_inches="tight")
+        plt.close()
