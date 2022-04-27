@@ -46,12 +46,12 @@ if __name__ == "__main__":
             transform=ax.transAxes, fontsize=20,
             verticalalignment='top', bbox=props)
 
-    ax.plot(combined_cycles, swing_cycles_duration, color='#F8550D', linestyle='dashed',
+    ax.plot(combined_cycles, swing_cycles_duration, color='#0081D9', linestyle='dashed',
      marker='o', linewidth=1, label='Swing')
     ax.plot(combined_cycles, true_swing_duration, 
         color='black', linewidth=2, label="Halbertsma best-fit")
 
-    ax.plot(combined_cycles, stance_cycles_duration, color='#0081D9', 
+    ax.plot(combined_cycles, stance_cycles_duration, color='#F8550D', 
         linestyle='dashed', marker='o', linewidth=1, label='Stance')
     ax.plot(combined_cycles, true_stance_duration, 
         color='black', linewidth=2)
@@ -74,4 +74,4 @@ if __name__ == "__main__":
     plt.savefig(f_name + ".png", dpi=200, bbox_inches="tight")
     plt.savefig(f_name + ".pdf", format="pdf", dpi=200, bbox_inches="tight", transparent=True)
 
-    plt.show()
+    # plt.show()

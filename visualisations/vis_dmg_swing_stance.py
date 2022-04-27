@@ -7,26 +7,17 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 
 if __name__ == "__main__":
-
-
     dmg_swing_stance = json.load(open('dmg_swing_stance.json', 'r'))
 
     data = defaultdict(list)
 
     for phase in ["swing", "stance", "all"]:
-        for i in range(1, 15):
+        for i in range(1, 11):
             runs = [e for e in dmg_swing_stance if e["disable_count"]==i and e["disable_phase"]==phase]
             # errors = [r["error_phase"] for r in runs]
             errors = [r["error"] for r in runs]
 
-            # print(i, np.median(errors))
-
             data[phase].append(np.mean(errors))
-            # break
-
-        # break
-
-
 
     plt.rcParams['font.size'] = 18
     plt.rcParams['axes.linewidth'] = 2
@@ -37,15 +28,13 @@ if __name__ == "__main__":
 
     ax = plt.gca()
 
-    x = list(range(1, 15))
+    x = [round((i/300)*100, 1) for i in range(1, 11)]
 
-    ax.plot(x, data["swing"], color="#F8550D", linewidth=2, label='Swing')
-    ax.plot(x, data["stance"], color="#0081D9", linewidth=2, label='Stance')
+    ax.plot(x, data["swing"], color="#0081D9", linewidth=2, label='Swing')
+    ax.plot(x, data["stance"], color="#F8550D", linewidth=2, label='Stance')
     ax.plot(x, data["all"], color="black", linewidth=2, label='Combined')
 
-    ax.set_xlabel('Damaged neurons', labelpad=10, fontsize=20)
-    ax.set_xticks([i*2 for i in range(9)])
-    ax.set_xlim([0, 16])
+    ax.set_xlabel('Damaged neurons, %', labelpad=10, fontsize=20)
 
     ax.set_ylabel('Error', labelpad=10, fontsize=20)
     ax.set_yticks([i*2 for i in range(5)])
@@ -60,4 +49,4 @@ if __name__ == "__main__":
     plt.savefig(f_name + ".pdf", format="pdf", dpi=200, bbox_inches="tight", transparent=True)
     plt.savefig(f_name + ".png", dpi=200, bbox_inches="tight")
 
-    plt.show()
+    # plt.show()

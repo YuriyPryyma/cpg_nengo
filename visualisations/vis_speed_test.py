@@ -74,9 +74,10 @@ if __name__ == "__main__":
 
     fig.tight_layout()
 
-    plt.show()
     os.makedirs("./images", exist_ok=True)
-    f_name = f"speed relationships"
+    f_name = f"./images/speed relationships"
     plt.savefig(f_name + ".pdf", format="pdf", dpi=200, bbox_inches="tight", transparent=True)
     plt.savefig(f_name + ".png", dpi=200, bbox_inches="tight")
+
+    # plt.show()
     plt.close()

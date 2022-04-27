@@ -44,10 +44,10 @@ if __name__ == "__main__":
     speed_points = np.array(speed_points)
 
 
-    ax.plot(speed_points, swing_cycles_duration, color="#F8550D", 
+    ax.plot(speed_points, swing_cycles_duration, color="#0081D9", 
           linewidth=2, label='Swing')
 
-    ax.plot(speed_points, stance_cycles_duration, color="#0081D9", 
+    ax.plot(speed_points, stance_cycles_duration, color="#F8550D", 
           linewidth=2, label='Stance')
 
     ax.plot(speed_points, combined_cycles, color="black", 
@@ -70,5 +70,5 @@ if __name__ == "__main__":
     plt.savefig(f_name + ".pdf", format="pdf", dpi=200, bbox_inches="tight", transparent=True)
     plt.savefig(f_name + ".png", dpi=200, bbox_inches="tight")
 
-    plt.show()
+    # plt.show()
 
