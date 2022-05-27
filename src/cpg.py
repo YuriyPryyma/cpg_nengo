@@ -142,8 +142,11 @@ def create_CPG(*, params, time, state_neurons=400, **args):
             }), label="init_stance")
 
         nengo.Connection(init_stance, model.stance2[0], synapse=tau)
+        if "speed_f" in args:
+            model.speed = nengo.Node(args["speed_f"], label="speed")
+        else:
+            model.speed = nengo.Node(lambda t: t/time, label="speed")
 
-        model.speed = nengo.Node(lambda t: t/time, label="speed")
         nengo.Connection(model.speed, model.swing1,
                              function=lambda speed:
                              tau * speed * params["speed_swing"],

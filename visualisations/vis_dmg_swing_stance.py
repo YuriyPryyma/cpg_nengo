@@ -5,19 +5,26 @@ from collections import defaultdict
 
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+import pandas as pd
+import seaborn as sns
 
 if __name__ == "__main__":
-    dmg_swing_stance = json.load(open('dmg_swing_stance.json', 'r'))
+    dmg_swing_stance = json.load(open('dmg_swing_stance_15.json', 'r'))
 
-    data = defaultdict(list)
+    d_swing = defaultdict(list)
+    d_stance = defaultdict(list)
 
-    for phase in ["swing", "stance", "all"]:
-        for i in range(1, 11):
-            runs = [e for e in dmg_swing_stance if e["disable_count"]==i and e["disable_phase"]==phase]
-            # errors = [r["error_phase"] for r in runs]
-            errors = [r["error"] for r in runs]
-
-            data[phase].append(np.mean(errors))
+    for e in dmg_swing_stance:
+        x = round((e["disable_count"]/300)*100, 1)
+        if x >= 3.5:
+            continue
+        y = e["error"]
+        if e["disable_phase"] == "swing":
+            d_swing['x'].append(x)
+            d_swing['y'].append(y)
+        elif e["disable_phase"] == "stance":
+            d_stance['x'].append(x)
+            d_stance['y'].append(y)
 
     plt.rcParams['font.size'] = 18
     plt.rcParams['axes.linewidth'] = 2
@@ -28,13 +35,31 @@ if __name__ == "__main__":
 
     ax = plt.gca()
 
-    x = [round((i/300)*100, 1) for i in range(1, 11)]
+    print(len(d_swing["x"]))
+    df_swing = pd.DataFrame(data=d_swing)
+    df_stance = pd.DataFrame(data=d_stance)
 
-    ax.plot(x, data["swing"], color="#0081D9", linewidth=2, label='Swing')
-    ax.plot(x, data["stance"], color="#F8550D", linewidth=2, label='Stance')
-    ax.plot(x, data["all"], color="black", linewidth=2, label='Combined')
+    sns.lineplot(ax = ax,
+             data = df_swing,
+             x = 'x',
+             y = 'y',
+             ci = 95,
+             linewidth=2.5,
+             label='Swing',
+             color="#0081D9")
+
+    sns.lineplot(ax = ax,
+             data = df_stance,
+             x = 'x',
+             y = 'y',
+             ci = 95,
+             linewidth=2.5,
+             label='Stance',
+             color="#F8550D")
 
     ax.set_xlabel('Damaged neurons, %', labelpad=10, fontsize=20)
+    ax.set_xticks([0.5, 1, 1.5, 2, 2.5, 3])
+    ax.set_xlim([0, 3.5])
 
     ax.set_ylabel('Error', labelpad=10, fontsize=20)
     ax.set_yticks([i*2 for i in range(5)])
@@ -49,4 +74,4 @@ if __name__ == "__main__":
     plt.savefig(f_name + ".pdf", format="pdf", dpi=200, bbox_inches="tight", transparent=True)
     plt.savefig(f_name + ".png", dpi=200, bbox_inches="tight")
 
-    # plt.show()
+    plt.show()

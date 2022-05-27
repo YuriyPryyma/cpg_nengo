@@ -32,7 +32,7 @@ def calc_swing_stance(state_probe):
     swing_cycles = []
     stance_cycles = []
 
-    for start_swing in stance_swing:   
+    for start_swing in stance_swing:
         start_stance_i = np.searchsorted(swing_stance, start_swing)
         if start_stance_i >= len(swing_stance):
             break
@@ -40,8 +40,9 @@ def calc_swing_stance(state_probe):
 
         end_stance_i = np.searchsorted(stance_swing, start_stance)
         if end_stance_i >= len(stance_swing):
-            break
-        end_stance = stance_swing[end_stance_i]
+            end_stance = len(state_probe)
+        else:
+            end_stance = stance_swing[end_stance_i]
 
         swing_cycles.append((start_swing, start_stance))
         stance_cycles.append((start_stance, end_stance))

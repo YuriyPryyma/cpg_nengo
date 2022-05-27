@@ -7,17 +7,18 @@ import matplotlib as mpl
 
 if __name__ == "__main__":
 
-    name = "experiment_history"
+    name = "experiment_dmg_0_stance_10_history"
 
-    history = json.load(open(f"{name}.json"))
+    history = json.load(open(f"test/{name}.json"))
+
+    history_len = int(len(history["swing1_state"])/1000)
 
     plt.rcParams['font.size'] = 18
     plt.rcParams['axes.linewidth'] = 2
     mpl.rcParams['pdf.fonttype'] = 42
     mpl.rcParams['ps.fonttype'] = 42
 
-    for i, j in [(l, l+4) for l in range(0, 77, 2)]:
-
+    for i, j in [(l, l+4) for l in range(0, history_len+1-4, 2)]:
         start = i * 1000
         end = j * 1000
         times = np.array(list(range(start, end))) / 1000
@@ -44,11 +45,10 @@ if __name__ == "__main__":
 
         fig.tight_layout()
 
-        
-        os.makedirs("./images", exist_ok=True)
-        f_name = f"./images/{name} {i} to {j} seconds"
-        plt.savefig(f_name + ".pdf", format="pdf", dpi=200, bbox_inches="tight", transparent=True)
+        os.makedirs(f"./test", exist_ok=True)
+        f_name = f"./test/{name} {i} to {j} seconds"
+        # plt.savefig(f_name + ".pdf", format="pdf", dpi=200, bbox_inches="tight", transparent=True)
         plt.savefig(f_name + ".png", dpi=200, bbox_inches="tight")
-
+        
         # plt.show()
         plt.close()

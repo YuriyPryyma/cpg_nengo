@@ -4,6 +4,8 @@ from functools import partial
 import json
 
 from tqdm import tqdm
+import sys
+sys.path.insert(0, "../src")
 import optimize
 import tune_optimize_utils as utils
 
@@ -34,17 +36,13 @@ def simulation_dmg_error(arg):
     }
 
 
-def test(x):
-    time.sleep(1)
-    return x*x
 
 if __name__ == "__main__":
     args = []
-    neurons = list(range(1, 25))
-    args.extend([("all", i) for i in range(1, 15)])
-    args.extend([("swing", i) for i in range(1, 15)])
-    args.extend([("stance", i) for i in range(1, 15)])    
-    args = args * 3
+    args.extend([("all", i) for i in range(1, 11)])
+    args.extend([("swing", i) for i in range(1, 11)])
+    args.extend([("stance", i) for i in range(1, 11)])    
+    args = args * 15
 
     pool = mp.Pool(mp.cpu_count())
     mapped_values = list(tqdm(pool.imap_unordered(simulation_dmg_error, args), 
@@ -53,6 +51,5 @@ if __name__ == "__main__":
     pool.close()
     pool.join()
 
-
-    with open('dmg_swing_stance_n.json', 'w') as f:
+    with open('dmg_swing_stance_15.json', 'w') as f:
         json.dump(mapped_values, f, indent=4)
