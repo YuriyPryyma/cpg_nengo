@@ -142,27 +142,29 @@ def create_CPG(*, params, state_neurons=400, **args):
 
         nengo.Connection(init_stance, model.stance2[0], synapse=tau)
 
-        model.speed = nengo.Node([0], label="speed")
-        
-        nengo.Connection(model.speed, model.swing1,
-                             function=lambda speed:
-                             tau * speed * params["speed_swing"],
-                             synapse=tau)
-        
-        nengo.Connection(model.speed, model.swing2,
-                             function=lambda speed:
-                             tau * speed * params["speed_swing"],
-                             synapse=tau)
-                             
-        nengo.Connection(model.speed, model.stance1,
-                             function=lambda speed:
-                             tau * speed * params["speed_stance"],
-                             synapse=tau)
-                             
-        nengo.Connection(model.speed, model.stance2,
-                             function=lambda speed:
-                             tau * speed * params["speed_stance"],
-                             synapse=tau)
+        model.speed1 = nengo.Node([0], label="speed1")
+
+        model.speed2 = nengo.Node([0], label="speed2")
+
+        nengo.Connection(model.speed1, model.swing1,
+                         function=lambda speed:
+                         tau * speed * params["speed_swing"],
+                         synapse=tau)
+
+        nengo.Connection(model.speed2, model.swing2,
+                         function=lambda speed:
+                         tau * speed * params["speed_swing"],
+                         synapse=tau)
+
+        nengo.Connection(model.speed1, model.stance1,
+                         function=lambda speed:
+                         tau * speed * params["speed_stance"],
+                         synapse=tau)
+
+        nengo.Connection(model.speed2, model.stance2,
+                         function=lambda speed:
+                         tau * speed * params["speed_stance"],
+                         synapse=tau)
 
         def disable_f(disable_count):
 
