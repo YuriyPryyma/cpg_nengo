@@ -7,9 +7,9 @@ import matplotlib as mpl
 
 if __name__ == "__main__":
 
-    name = "experiment_dmg_0_stance_10_history"
+    name = "experiment_history"
 
-    history = json.load(open(f"test/{name}.json"))
+    history = json.load(open(f"{name}.json"))
 
     history_len = int(len(history["swing1_state"])/1000)
 
@@ -45,8 +45,8 @@ if __name__ == "__main__":
 
         fig.tight_layout()
 
-        os.makedirs(f"./test", exist_ok=True)
-        f_name = f"./test/{name} {i} to {j} seconds"
+        os.makedirs(f"./experiment_images", exist_ok=True)
+        f_name = f"./experiment_images/{name} {i} to {j} seconds"
         # plt.savefig(f_name + ".pdf", format="pdf", dpi=200, bbox_inches="tight", transparent=True)
         plt.savefig(f_name + ".png", dpi=200, bbox_inches="tight")
         

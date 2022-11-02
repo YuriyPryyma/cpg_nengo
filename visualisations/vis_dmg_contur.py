@@ -2,13 +2,18 @@ import matplotlib.pyplot as plt
 plt.style.use('seaborn-white')
 import numpy as np
 import json
+import os
 
 
 import plotly.graph_objects as go
 
 if __name__ == "__main__":
 
-    disable_type = "swing"
+    disable_type = "stance"
+    t2m = {
+        "swing" : "flexor",
+        "stance": "extensor"
+    }
 
     dmg_speed_count = json.load(open("dmg_speed_count_25_may.json"))
     x = sorted(set([e["speed"] for e in dmg_speed_count]))
@@ -35,14 +40,18 @@ if __name__ == "__main__":
             y=y,
             colorscale='thermal_r',
             colorbar=dict(
-                title='Phase error', # title here
+                title='Phase duration error, au', # title here
                 titleside='right'
             )
         )
     )
 
     fig.update_layout(
-        title=f"Model error for different input and {disable_type} damage",
+        title={
+            'text' : f"{t2m[disable_type]} damage",
+            'x':0.5,
+            'xanchor': 'center'
+        },
         xaxis_title="CPG input",
         yaxis_title="Damaged neurons, %",
     )
@@ -50,6 +59,8 @@ if __name__ == "__main__":
     fig.update_xaxes(title_font_family="Arial")
 
     # fig.show()
-    name = f"{disable_type}_dmg_input_contour"
+
+    os.makedirs("./images", exist_ok=True)
+    name = f"{t2m[disable_type]}_dmg_input_contour"
     fig.write_image(f"images/{name}.png")
-    # fig.write_image(f"images/{name}.pdf")
+    fig.write_image(f"images/{name}.pdf")

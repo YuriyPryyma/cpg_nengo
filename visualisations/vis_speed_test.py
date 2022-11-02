@@ -47,6 +47,8 @@ if __name__ == "__main__":
         return A * x + B
 
     popt, pcov = curve_fit(f, speed_points, V_predicted)
+
+    print(f"x*{popt[0]} + {popt[1]}")
     
     fit_line = [speed*popt[0] + popt[1] for speed in speed_points]
 
@@ -76,8 +78,8 @@ if __name__ == "__main__":
 
     os.makedirs("./images", exist_ok=True)
     f_name = f"./images/speed relationships"
-    plt.savefig(f_name + ".pdf", format="pdf", dpi=200, bbox_inches="tight", transparent=True)
-    plt.savefig(f_name + ".png", dpi=200, bbox_inches="tight")
+    # plt.savefig(f_name + ".pdf", format="pdf", dpi=200, bbox_inches="tight", transparent=True)
+    # plt.savefig(f_name + ".png", dpi=200, bbox_inches="tight")
 
-    # plt.show()
+    plt.show()
     plt.close()
