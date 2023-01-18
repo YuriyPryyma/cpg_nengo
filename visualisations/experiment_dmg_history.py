@@ -3,7 +3,7 @@ from functools import partial
 import numpy as np
 
 import sys
-sys.path.insert(0, "../src")
+sys.path.insert(0, "..")
 import optimize
 
 import tune_optimize_utils as utils
@@ -37,4 +37,4 @@ if __name__ == "__main__":
     for k in history.keys():
         history[k] = history[k][:, 0].tolist()
 
-    json.dump(history, open(f"experiment_dmg_{dmg_type}_history.json", 'w'))
+    json.dump(history, open(f"experiment_dmg_{dmg_type}_history_remof4_me.json", 'w'))

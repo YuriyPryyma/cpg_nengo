@@ -205,6 +205,8 @@ def create_CPG(*, params, time, state_neurons=400, **args):
         # or it will for from 0 to 1 in "time" seconds
         if "speed_f" in args:
             model.speed = nengo.Node(args["speed_f"], label="speed")
+        elif "vis" in args:
+            model.speed = nengo.Node([0], label="speed")
         else:
             model.speed = nengo.Node(lambda t: t/time, label="speed")
 
@@ -230,29 +232,46 @@ def create_CPG(*, params, time, state_neurons=400, **args):
 
         # A user could provide a damage function
         # which will inhibit some state neurons depending on the conditions
-        if "dmg_f" in args:
+
+        is_damage = False
+
+
+        if "vis" in args:
+            data_source = nengo.Node([0], label="dmg")
+
+            def dmg_f(disable_count):
+                neuron_signal = np.zeros(state_neurons)
+
+                for i in range(int(disable_count)):
+                    neuron_signal[i] = -30
+
+                return neuron_signal
+
+        elif "dmg_f" in args:
+            data_source = nengo.Node(lambda t: t, label="sim_time")
+
             dmg_f = partial(args["dmg_f"],
                 state_neurons=state_neurons,
                 time=time)
 
-            sim_time = nengo.Node(lambda t: t, label="sim_time")
 
-            nengo.Connection(sim_time,
+        if is_damage:
+            nengo.Connection(data_source,
                     model.swing1.neurons,
                     function=partial(dmg_f, phase="swing1"),
                     synapse=None)
 
-            nengo.Connection(sim_time,
+            nengo.Connection(data_source,
                     model.stance1.neurons,
                     function=partial(dmg_f, phase="stance1"),
                     synapse=None)
 
-            nengo.Connection(sim_time,
+            nengo.Connection(data_source,
                     model.swing2.neurons,
                     function=partial(dmg_f, phase="swing2"),
                     synapse=None)
 
-            nengo.Connection(sim_time,
+            nengo.Connection(data_source,
                     model.stance2.neurons,
                     function=partial(dmg_f, phase="stance2"),
                     synapse=None)

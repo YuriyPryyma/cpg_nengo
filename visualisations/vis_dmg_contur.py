@@ -41,7 +41,7 @@ if __name__ == "__main__":
             colorscale='thermal_r',
             colorbar=dict(
                 title='Phase duration error, au', # title here
-                titleside='right'
+                titleside='right',
             )
         )
     )
@@ -50,13 +50,15 @@ if __name__ == "__main__":
         title={
             'text' : f"{t2m[disable_type]} damage",
             'x':0.5,
-            'xanchor': 'center'
+            'xanchor': 'center',
         },
         xaxis_title="CPG input",
         yaxis_title="Damaged neurons, %",
+        font=dict(
+            family="Arial",
+            size=26
+        )
     )
-
-    fig.update_xaxes(title_font_family="Arial")
 
     # fig.show()
 
