@@ -5,12 +5,43 @@ import numpy as np
 from nengo.processes import Piecewise
 from nengo.dists import Uniform
 
+"""
+For one dimensional variable in range (-1, 1)
+"""
 radius = 1
+
+"""
+Synapse controls the size of a filter
+In case of a big filter the system is highly stable, but
+slowly responding to changes
+"""
 tau = 0.01
 
 def create_CPG(*, params, time, state_neurons=400, **args):
+    """
+    Fuctions creates spiking CPG model using input parameters
+    
+    Parameters
+    ----------
+    params : dict
+        Includes dicionary with CPG model parameters 
+        describing model dynamics
+    time : int
+        Duration of simulation, for liniar speed change from 0 to 1, for that duration
+    state_neurons : int
+        Number of parameners to use for swing and stance 
+        state representation including integrator and speed control      
+    Returns
+    -------
+    Nengo model
+    """
 
     def swing_feedback(x):
+        """
+        Function transforms differential equations for
+        swing state updates to a format acceptable for nengo
+        recurrent connection
+        """
         dX = params["init_swing"] + params["inner_inhibit"] * x
         return dX * tau + x
         
@@ -19,6 +50,10 @@ def create_CPG(*, params, time, state_neurons=400, **args):
         return dX * tau + x
         
     def speed_swing(speed):
+        """
+        Function transforms differential equations for
+        speed influence on swing to a nengo format
+        """
         dx = params["speed_swing"] * speed
         return dX * tau
         
@@ -27,6 +62,11 @@ def create_CPG(*, params, time, state_neurons=400, **args):
         return dX * tau
 
     def positive_signal(x):
+        """
+        Function implements inhibition for state neurons in case
+        state variable is bigger then 0
+        We use this function to switch active group 
+        """
         if x > 0:
             return [-100] * state_neurons
         else:
@@ -40,8 +80,11 @@ def create_CPG(*, params, time, state_neurons=400, **args):
 
     model = nengo.Network(seed=42)
     with model:
+        # Becase we integrate from 0 to 1
+        # There is no point to train our connections on negative numbers
         eval_points_dist = Uniform(0, 1)
 
+        ## creating main state variables
         model.swing1 = nengo.Ensemble(state_neurons, 1, radius=radius,
                                       label="swing1",
                                       eval_points=eval_points_dist)
@@ -58,8 +101,11 @@ def create_CPG(*, params, time, state_neurons=400, **args):
                                        label="stance2",
                                        eval_points=eval_points_dist)
 
+        # Nengo automatically sample points for training
+        # In out case we want to control this process
         eval_points_sample = np.random.rand(10000, 1)
 
+        # Setting reccurent connections that is part of cpg dynamics
         nengo.Connection(model.swing1, model.swing1,
                          function=swing_feedback,
                          synapse=tau, eval_points=eval_points_sample)
@@ -73,6 +119,7 @@ def create_CPG(*, params, time, state_neurons=400, **args):
                          function=stance_feedback,
                          synapse=tau, eval_points=eval_points_sample)
 
+        # Setting connections between states for two limbs iteratively
         for group in [(model.swing1, model.stance1, model.swing2, model.stance2),
                       (model.swing2, model.stance2, model.swing1, model.stance1)]:
             swing_left, stance_left, swing_right, stance_right = group
@@ -97,6 +144,15 @@ def create_CPG(*, params, time, state_neurons=400, **args):
                              synapse=tau)
 
         def create_switcher(leg, swing, stance, init="swing"):
+            """
+            Function implements group of nengo elements that are responsible
+            for this functions:
+                1) Inhibiting swing or stance ensemble depending on the state of switch element
+                2) Initializing model dynamics, by setting the switch element to the corresponding state. 
+                This initial state will be different for opposite limbs. pPssible values is -1 and 1
+                3) Fliping the state of switch element if swing or stance ensemble riches threshold 
+
+            """
             start_signal = nengo.Node(
                 Piecewise({
                     0: -1 if init == "swing" else 1,
@@ -135,13 +191,18 @@ def create_CPG(*, params, time, state_neurons=400, **args):
         model.s2, thresh3, thresh4 = create_switcher("2", model.swing2,
                                                      model.stance2, init="stance")
 
+        # Model start with all states equal zero, 
+        # except one stance for one limb which is taken from parameters. 
+        # As locomition for two limbs is shifted by phase they all cannot start from zeor 
         init_stance = nengo.Node(
             Piecewise({
                 0: params["init_stance_position"],
                 0.01: 0,
             }), label="init_stance")
-
         nengo.Connection(init_stance, model.stance2[0], synapse=tau)
+
+        # User could provide it's own function for speed
+        # or it will for from 0 to 1 in "time" seconds
         if "speed_f" in args:
             model.speed = nengo.Node(args["speed_f"], label="speed")
         else:
@@ -167,7 +228,8 @@ def create_CPG(*, params, time, state_neurons=400, **args):
                              tau * speed * params["speed_stance"],
                              synapse=tau)
 
-
+        # A user could provide a damage function
+        # which will inhibit some state neurons depending on the conditions
         if "dmg_f" in args:
             dmg_f = partial(args["dmg_f"],
                 state_neurons=state_neurons,
