@@ -6,7 +6,8 @@ from cpg import create_CPG
 
 tau = 0.01
 
-# Halbert sma minmax(Tc)
+# Halbertsma minmax(Tc)
+# Minimum and maximum ranges for cat cycle duration
 MIN_PHASE, MAX_PHASE = (.57, 1.91)
 
 
@@ -22,6 +23,11 @@ def findall(p, s):
 
 
 def calc_swing_stance(state_probe):
+    """
+    Fuction detects starts and ends for swing and stance phases
+    using findall function
+    giving state changes history
+    """
     s1_state_changes = state_probe < 0
 
     state_str = "".join([str(int(s)) for s in s1_state_changes])
@@ -51,15 +57,27 @@ def calc_swing_stance(state_probe):
 
 
 def cycle_to_swing(cycle):
+    """
+    Calculates expected swing phase duration given cycle duration
+    as present in Halbertsma cats dataset
+    """
     return 0.168 + 0.0938 * cycle
 
 
 def cycle_to_stance(cycle):
+    """
+    Calculates expected stance phase duration given cycle duration
+    as present in Halbertsma cats dataset
+    """
     return -0.168 + 0.9062 * cycle
 
 
 def single_limb_error(swing_cycles, stance_cycles):
-
+    """
+    Function computers phase duration loss for one limb
+    by calculating root mean square error of expected phase durations and simulated phases
+    Our goal to reproduce the same linear relationship present in Halbertsma dataset
+    """
     swing_cycles_duration = [(right - left) / 1000
                              for left, right in swing_cycles]
 
@@ -82,7 +100,9 @@ def single_limb_error(swing_cycles, stance_cycles):
     return error_phase, error_speed
 
 def symmetry_error(swing_cycles, stance_cycles):
-
+    """
+    Function checks if swing phase of a limb is in the middle of stance phase in other limb
+    """
     pre_swing_part = [abs(swing[0] - stance[0]) / 1000
                       for swing, stance in zip(swing_cycles, stance_cycles)]
 
@@ -95,6 +115,10 @@ def symmetry_error(swing_cycles, stance_cycles):
 
 
 def simulation(params, time=80, progress_bar=False, state_neurons=300, **args):
+    """
+    Function creates CPG model given parameters and run simulation
+    Returns dictionary for simulation history
+    """
     model = create_CPG(params=params, state_neurons=state_neurons, time=time, **args)
 
     with model:
@@ -122,6 +146,9 @@ def simulation(params, time=80, progress_bar=False, state_neurons=300, **args):
 
 
 def simulation_error(params, time=80, progress_bar=False, state_neurons=300, **args):
+    """
+    Function runs simulation and combines all losses into final value
+    """
     history = simulation(params, time, progress_bar, state_neurons=state_neurons, **args)
 
     s1_state = history["s1_state"]
