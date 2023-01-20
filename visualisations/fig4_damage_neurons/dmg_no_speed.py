@@ -5,7 +5,7 @@ import json
 
 from tqdm import tqdm
 import sys
-sys.path.insert(0, "../src")
+sys.path.insert(0, "../..")
 import optimize
 import tune_optimize_utils as utils
 

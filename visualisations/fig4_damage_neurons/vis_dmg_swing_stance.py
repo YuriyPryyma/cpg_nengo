@@ -9,7 +9,7 @@ import pandas as pd
 import seaborn as sns
 
 if __name__ == "__main__":
-    dmg_swing_stance = json.load(open('dmg_swing_stance_15.json', 'r'))
+    dmg_swing_stance = json.load(open('../data_gen/dmg_swing_stance_15.json', 'r'))
 
     d_swing = defaultdict(list)
     d_stance = defaultdict(list)

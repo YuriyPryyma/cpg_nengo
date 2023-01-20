@@ -8,9 +8,10 @@ from scipy.optimize import curve_fit
 
 
 if __name__ == "__main__":
-    history = json.load(open("experiment_history.json"))
+    history = json.load(open("../data_gen/experiment_history.json"))
 
     swing_cycles, stance_cycles = history["s1_swing_cycles"], history["s1_stance_cycles"]
+
     swing_cycles_duration = [(right - left) / 1000
                          for left, right in swing_cycles][1:]
     stance_cycles_duration = [(right - left) / 1000
@@ -78,8 +79,8 @@ if __name__ == "__main__":
 
     os.makedirs("./images", exist_ok=True)
     f_name = f"./images/speed relationships"
-    # plt.savefig(f_name + ".pdf", format="pdf", dpi=200, bbox_inches="tight", transparent=True)
-    # plt.savefig(f_name + ".png", dpi=200, bbox_inches="tight")
+    plt.savefig(f_name + ".pdf", format="pdf", dpi=200, bbox_inches="tight", transparent=True)
+    plt.savefig(f_name + ".png", dpi=200, bbox_inches="tight")
 
     plt.show()
     plt.close()

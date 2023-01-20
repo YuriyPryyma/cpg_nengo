@@ -247,12 +247,16 @@ def create_CPG(*, params, time, state_neurons=400, **args):
 
                 return neuron_signal
 
+            is_damage=True
+
         elif "dmg_f" in args:
             data_source = nengo.Node(lambda t: t, label="sim_time")
 
             dmg_f = partial(args["dmg_f"],
                 state_neurons=state_neurons,
                 time=time)
+
+            is_damage=True
 
 
         if is_damage:

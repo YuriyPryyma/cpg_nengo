@@ -53,7 +53,7 @@ def calc_swing_stance(state_probe):
         swing_cycles.append((start_swing, start_stance))
         stance_cycles.append((start_stance, end_stance))
 
-    return swing_cycles, stance_cycles
+    return swing_cycles[1:-1], stance_cycles[1:-1]
 
 
 def cycle_to_swing(cycle):

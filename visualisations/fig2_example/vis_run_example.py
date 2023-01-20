@@ -18,7 +18,7 @@ if __name__ == "__main__":
     mpl.rcParams['pdf.fonttype'] = 42
     mpl.rcParams['ps.fonttype'] = 42
 
-    for i, j in [(l, l+4) for l in range(0, history_len+1-4, 2)]:
+    for i, j in [[6, 10], [36, 40], [76, 80]]:
         start = i * 1000
         end = j * 1000
         times = np.array(list(range(start, end))) / 1000

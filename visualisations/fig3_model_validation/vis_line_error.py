@@ -8,7 +8,7 @@ from sklearn.metrics import r2_score
 tau = 0.01
 
 if __name__ == "__main__":
-    history = json.load(open("experiment_history.json"))
+    history = json.load(open("../data_gen/experiment_history.json"))
 
     plt.rcParams['font.size'] = 18
     plt.rcParams['axes.linewidth'] = 2
@@ -22,10 +22,10 @@ if __name__ == "__main__":
     s1_swing_cycles, s1_stance_cycles = history["s1_swing_cycles"], history["s1_stance_cycles"]
 
     swing_cycles_duration = [(right - left) / 1000
-                              for left, right in s1_swing_cycles][1:]
+                              for left, right in s1_swing_cycles]
 
     stance_cycles_duration = [(right - left) / 1000
-                              for left, right in s1_stance_cycles][1:]
+                              for left, right in s1_stance_cycles]
 
     combined_cycles = np.array(swing_cycles_duration) + np.array(stance_cycles_duration)
 
@@ -74,4 +74,4 @@ if __name__ == "__main__":
     plt.savefig(f_name + ".png", dpi=200, bbox_inches="tight")
     plt.savefig(f_name + ".pdf", format="pdf", dpi=200, bbox_inches="tight", transparent=True)
 
-    # plt.show()
+    plt.show()

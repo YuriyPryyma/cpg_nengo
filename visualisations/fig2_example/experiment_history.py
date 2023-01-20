@@ -1,7 +1,7 @@
 import json
 
 import sys
-sys.path.insert(0, "../src")
+sys.path.insert(0, "../../")
 import optimize
 import numpy as np
 import tune_optimize_utils as utils
@@ -17,10 +17,10 @@ if __name__ == "__main__":
 
     s1_swing_cycles, s1_stance_cycles = optimize.calc_swing_stance(history["s1_state"])
     swing_cycles_duration = [(right - left) / 1000
-                         for left, right in s1_swing_cycles][1:]
+                         for left, right in s1_swing_cycles]
 
     stance_cycles_duration = [(right - left) / 1000
-                              for left, right in s1_stance_cycles][1:]
+                              for left, right in s1_stance_cycles]
 
     combined_cycles = np.array(swing_cycles_duration) + np.array(stance_cycles_duration)
     true_s1_swing_duration = optimize.cycle_to_swing(combined_cycles)

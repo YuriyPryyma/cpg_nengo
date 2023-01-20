@@ -14,7 +14,7 @@ if __name__ == "__main__":
     mpl.rcParams['pdf.fonttype'] = 42
     mpl.rcParams['ps.fonttype'] = 42
 
-    history = json.load(open("experiment_history.json"))
+    history = json.load(open("../data_gen/experiment_history.json"))
 
     fig = plt.figure(figsize=(10, 10))
 
