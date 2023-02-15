@@ -23,7 +23,7 @@ We aimed to create the framework for comparing a versatile CPG rate model and it
 The nengo model defined in cpg.py file. It is possible to visualize model dynamics using Nengo GUI until. For this just run 
 
     nengo_gui
-   and open cpg.py file 
+   and open cpg_vis.py file 
 
 #### Optimization
 Error functions defined in optimize.py
@@ -31,6 +31,9 @@ Command to run optimization using hyperout
  
         python optimize_hyperopt.py
 
+#### Help
+Explanation of core CPG elements could e found in example folder
+Open each one with nengo_gui and go thought explanation
 
 ## Additional details
 It is possible to run simulation on GPU using OpenCL-based simulator, which is a bit faster.
