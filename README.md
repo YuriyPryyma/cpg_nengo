@@ -32,7 +32,7 @@ Command to run optimization using hyperout
         python optimize_hyperopt.py
 
 #### Help
-Explanation of core CPG elements could e found in example folder
+Explanation of core CPG elements could be found in example folder.
 Open each one with nengo_gui and go thought explanation
 
 ## Additional details
