@@ -1,7 +1,10 @@
 import numpy as np
 from sklearn.metrics import mean_squared_error
 import nengo
-import nengo_ocl
+try:
+    import nengo_ocl
+except:
+    print("Warning: can't import nengo_ocl. Using CPU")
 from cpg import create_CPG
 
 tau = 0.01
