@@ -1,5 +1,5 @@
 ray[tune]
-sklearn
+scikit-learn
 nengo
 nengo-gui
 hyperopt
