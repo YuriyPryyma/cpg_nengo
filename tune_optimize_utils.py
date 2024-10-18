@@ -1,16 +1,17 @@
 from datetime import datetime
 from ray import tune
 
+from optimize import simulation_error
 
-def ray_wrapper(func):
-    def inner(params):
-        history, error, error_phase, error_speed, error_sym1, error_sym2 = func(params)
-        tune.report(error=error, error_phase=error_phase,
-                    error_speed=error_speed,
-                    error_symmetricity1=error_sym1,
-                    error_symmetricity2=error_sym2)
-
-    return inner
+def tune_error(params):
+    history, error, error_phase, error_speed, error_sym1, error_sym2 = simulation_error(params)
+    return {
+        "error":error, 
+        "error_phase":error_phase,
+        "error_speed":error_speed,
+        "error_symmetricity1":error_sym1,
+        "error_symmetricity2":error_sym2
+    }
 
 
 def exp_name(Alg):
